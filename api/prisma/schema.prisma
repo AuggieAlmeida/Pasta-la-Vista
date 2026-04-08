@@ -1,0 +1,97 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CLIENT
+  ADMIN
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         Role     @default(CLIENT)
+  phone        String?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  orders       Order[]
+
+  @@map("users")
+}
+
+model Order {
+  id            String      @id @default(uuid())
+  userId        String      @map("user_id")
+  total         Decimal     @db.Decimal(10, 2)
+  status        OrderStatus @default(PENDING)
+  paymentMethod String      @map("payment_method")
+  paidAt        DateTime?   @map("paid_at")
+  createdAt     DateTime    @default(now()) @map("created_at")
+
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items         OrderItem[]
+  payment       Payment?
+
+  @@map("orders")
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  DELIVERED
+  CANCELLED
+}
+
+model OrderItem {
+  id          String  @id @default(uuid())
+  orderId     String  @map("order_id")
+  productId   String  @map("product_id")
+  quantity    Int
+  unitPrice   Decimal @db.Decimal(10, 2) @map("unit_price")
+  obs         String?
+
+  order       Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("order_items")
+}
+
+model Stock {
+  id          String      @id @default(uuid())
+  productId   String      @unique @map("product_id")
+  quantity    Int
+  minQuantity Int         @map("min_quantity")
+  status      StockStatus @default(AVAILABLE)
+
+  @@index([status])
+  @@map("stocks")
+}
+
+enum StockStatus {
+  AVAILABLE
+  LOW
+  OUT_OF_STOCK
+}
+
+model Payment {
+  id              String  @id @default(uuid())
+  orderId         String  @unique @map("order_id")
+  stripePaymentId String  @map("stripe_payment_id")
+  status          String
+  amount          Decimal @db.Decimal(10, 2)
+
+  order           Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
