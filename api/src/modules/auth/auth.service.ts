@@ -47,7 +47,7 @@ export const authService = {
     const refresh_token = signRefreshToken(user.id);
 
     // Armazenar refresh token no Redis
-    await redis.setex(
+    await redis!.setex(
       `refresh_token:${user.id}`,
       REFRESH_TOKEN_TTL,
       refresh_token
@@ -87,7 +87,7 @@ export const authService = {
     const refresh_token = signRefreshToken(user.id);
 
     // Armazenar refresh token no Redis
-    await redis.setex(
+    await redis!.setex(
       `refresh_token:${user.id}`,
       REFRESH_TOKEN_TTL,
       refresh_token
@@ -114,7 +114,7 @@ export const authService = {
     }
 
     // Verificar se token está no Redis
-    const storedToken = await redis.get(`refresh_token:${userId}`);
+    const storedToken = await redis!.get(`refresh_token:${userId}`);
 
     if (storedToken !== refresh_token) {
       throw new Error('Refresh token não encontrado ou expirou');
@@ -134,7 +134,7 @@ export const authService = {
     const new_refresh_token = signRefreshToken(user.id);
 
     // Atualizar refresh token no Redis
-    await redis.setex(
+    await redis!.setex(
       `refresh_token:${user.id}`,
       REFRESH_TOKEN_TTL,
       new_refresh_token
@@ -148,6 +148,6 @@ export const authService = {
 
   async logout(userId: string): Promise<void> {
     // Deletar refresh token do Redis
-    await redis.del(`refresh_token:${userId}`);
+    await redis!.del(`refresh_token:${userId}`);
   },
 };

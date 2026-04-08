@@ -10,8 +10,8 @@ export interface JwtPayload {
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key-change-in-production';
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret-key-change-in-production';
-const ACCESS_TOKEN_EXPIRES = process.env.ACCESS_TOKEN_EXPIRES || '15m';
-const REFRESH_TOKEN_EXPIRES = process.env.REFRESH_TOKEN_EXPIRES || '7d';
+const ACCESS_TOKEN_EXPIRES: string | number = process.env.ACCESS_TOKEN_EXPIRES || '15m';
+const REFRESH_TOKEN_EXPIRES: string | number = process.env.REFRESH_TOKEN_EXPIRES || '7d';
 
 export const signAccessToken = (userId: string, email: string, role: 'CLIENT' | 'ADMIN'): string => {
   const payload: JwtPayload = {
@@ -23,7 +23,7 @@ export const signAccessToken = (userId: string, email: string, role: 'CLIENT' | 
   return jwt.sign(payload, JWT_SECRET, {
     expiresIn: ACCESS_TOKEN_EXPIRES,
     algorithm: 'HS256',
-  });
+  } as any);
 };
 
 export const signRefreshToken = (userId: string): string => {
@@ -32,7 +32,7 @@ export const signRefreshToken = (userId: string): string => {
   return jwt.sign(payload, JWT_REFRESH_SECRET, {
     expiresIn: REFRESH_TOKEN_EXPIRES,
     algorithm: 'HS256',
-  });
+  } as any);
 };
 
 export const verifyAccessToken = (token: string): JwtPayload => {

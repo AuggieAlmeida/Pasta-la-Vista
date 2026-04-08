@@ -2,14 +2,13 @@ import { PrismaClient } from '@prisma/client';
 import mongoose from 'mongoose';
 import Redis from 'ioredis';
 
-let prisma: PrismaClient;
-let mongodb: typeof mongoose;
-let redis: Redis;
+const prisma = new PrismaClient();
+let mongodb: mongoose.Mongoose | null = null;
+let redis: Redis | null = null;
 
 export const connectDatabases = async (): Promise<void> => {
   try {
     // PostgreSQL via Prisma
-    prisma = new PrismaClient();
     await prisma.$connect();
     console.log('✅ PostgreSQL (Prisma) conectado');
 
@@ -50,7 +49,7 @@ export const connectDatabases = async (): Promise<void> => {
 
 export const disconnectDatabases = async (): Promise<void> => {
   try {
-    if (prisma) await prisma.$disconnect();
+    await prisma.$disconnect();
     if (mongodb) await mongoose.disconnect();
     if (redis) await redis.quit();
     console.log('✅ Todas as conexões fechadas');

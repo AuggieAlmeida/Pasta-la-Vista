@@ -4,7 +4,7 @@
     "module": "ESNext",
     "lib": ["ES2020"],
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": ".",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -12,8 +12,9 @@
     "resolveJsonModule": true,
     "declaration": true,
     "declarationMap": true,
+    "types": ["node", "jest"],
     "sourceMap": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
     "isolatedModules": true,
     "strictNullChecks": true,
@@ -28,6 +29,6 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "dist", "**/*.spec.ts", "**/*.test.ts"]
+  "include": ["src", "tests"],
+  "exclude": ["node_modules", "dist"]
 }
