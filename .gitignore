@@ -28,7 +28,7 @@ build/
 *.swp
 *.swo
 *~
-.DS_Store
+.docs/
 
 # Logs
 logs/

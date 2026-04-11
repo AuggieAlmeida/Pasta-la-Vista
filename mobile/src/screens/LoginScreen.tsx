@@ -11,6 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
+import { FontAwesome6 } from '@expo/vector-icons';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LoginSchema, LoginInput } from '../types/auth';
 import { useAuthStore } from '../stores/auth.store';
@@ -38,15 +39,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
       const { user, access_token, refresh_token } = response.data.data;
 
-      // Salvar no Zustand
+      // Salvar no Zustand e deixar o RootNavigator se re-renderizar automaticamente!
       setAuth(user, access_token, refresh_token);
-
-      // Redirecionar baseado em role
-      if (user.role === 'ADMIN') {
-        navigation.replace('AdminNavigator');
-      } else {
-        navigation.replace('ClientNavigator');
-      }
     } catch (error: any) {
       const message = error?.response?.data?.message || 'Erro ao fazer login';
       setError(message);
@@ -62,7 +56,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
       style={styles.container}
     >
       <View style={styles.content}>
-        <Text style={styles.logo}>🍝</Text>
+        <FontAwesome6 name="bowl-food" size={60} color="#FF6B35" style={styles.logo} />
         <Text style={styles.title}>Bem-vindo</Text>
         <Text style={styles.subtitle}>Entre em sua conta</Text>
 
@@ -141,7 +135,6 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   logo: {
-    fontSize: 60,
     textAlign: 'center',
     marginBottom: 16,
   },

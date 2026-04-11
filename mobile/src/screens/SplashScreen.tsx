@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { FontAwesome6 } from '@expo/vector-icons';
 import { useAuthStore } from '../stores/auth.store';
 
 interface SplashScreenProps {
@@ -14,14 +15,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
       // Simular verificação de token
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      if (isAuthenticated && user) {
-        // Usuário autenticado - ir para home
-        if (user.role === 'ADMIN') {
-          navigation.replace('AdminNavigator');
-        } else {
-          navigation.replace('ClientNavigator');
-        }
-      } else {
+      if (!isAuthenticated || !user) {
         // Usuário não autenticado - ir para login
         navigation.replace('Login');
       }
@@ -32,7 +26,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.logo}>🍝</Text>
+      <FontAwesome6 name="bowl-food" size={80} color="#FF6B35" style={styles.logo} />
       <Text style={styles.title}>Pasta la vista</Text>
       <ActivityIndicator size="large" color="#FF6B35" />
       <Text style={styles.version}>v0.1.0</Text>
@@ -48,7 +42,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   logo: {
-    fontSize: 80,
     marginBottom: 16,
   },
   title: {

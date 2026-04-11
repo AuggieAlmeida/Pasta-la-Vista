@@ -14,9 +14,14 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:docker:start": "docker-compose -f ../docker-compose.test.yml up -d",
+    "test:docker:stop": "docker-compose -f ../docker-compose.test.yml down",
+    "test:docker": "npm run test:docker:start && npm test; npm run test:docker:stop",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
-    "prisma:generate": "prisma generate"
+    "prisma:generate": "prisma generate",
+    "prisma:seed": "tsx prisma/seed.ts",
+    "seed:products": "tsx src/scripts/seed-products.ts"
   },
   "keywords": [
     "delivery",
@@ -38,6 +43,7 @@
     "ioredis": "^5.3.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.0.3",
+    "swagger-ui-express": "^5.0.1",
     "zod": "^3.22.4"
   },
   "devDependencies": {
@@ -49,6 +55,7 @@
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^20.10.6",
     "@types/supertest": "^7.2.0",
+    "@types/swagger-ui-express": "^4.1.8",
     "@typescript-eslint/eslint-plugin": "^6.17.0",
     "@typescript-eslint/parser": "^6.17.0",
     "eslint": "^8.56.0",

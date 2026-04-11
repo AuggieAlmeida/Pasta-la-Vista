@@ -5,6 +5,8 @@ export const RegisterSchema = z.object({
     .min(3, 'Nome deve ter no mínimo 3 caracteres')
     .max(100, 'Nome deve ter no máximo 100 caracteres'),
   email: z.string()
+    .trim()
+    .toLowerCase()
     .email('Email inválido'),
   password: z.string()
     .min(8, 'Senha deve ter no mínimo 8 caracteres')
@@ -18,6 +20,8 @@ export const RegisterSchema = z.object({
 
 export const LoginSchema = z.object({
   email: z.string()
+    .trim()
+    .toLowerCase()
     .email('Email inválido'),
   password: z.string()
     .min(1, 'Senha obrigatória'),

@@ -12,6 +12,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
+import { FontAwesome6 } from '@expo/vector-icons';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RegisterSchema, RegisterInput } from '../types/auth';
 import { useAuthStore } from '../stores/auth.store';
@@ -41,11 +42,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
 
       const { user, access_token, refresh_token } = response.data.data;
 
-      // Salvar no Zustand
+      // Salvar no Zustand e o ambiente reage
       setAuth(user, access_token, refresh_token);
-
-      // Auto-login para home
-      navigation.replace('ClientNavigator');
     } catch (error: any) {
       const message = error?.response?.data?.message || 'Erro ao cadastrar';
       setError(message);
@@ -62,7 +60,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.content}>
-          <Text style={styles.logo}>🍝</Text>
+          <FontAwesome6 name="bowl-food" size={60} color="#FF6B35" style={styles.logo} />
           <Text style={styles.title}>Cadastro</Text>
           <Text style={styles.subtitle}>Criar nova conta</Text>
 
@@ -203,7 +201,6 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   logo: {
-    fontSize: 60,
     textAlign: 'center',
     marginBottom: 16,
   },

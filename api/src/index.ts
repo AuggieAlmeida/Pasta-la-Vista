@@ -13,7 +13,7 @@ const startServer = async (): Promise<void> => {
     await connectDatabases();
 
     const server = app.listen(PORT, () => {
-      console.log(`🍝 Pasta la Vista API rodando em http://localhost:${PORT}`);
+      console.log(`Pasta la Vista API rodando em http://localhost:${PORT}`);
       console.log(`Environment: ${process.env.NODE_ENV}`);
     });
 

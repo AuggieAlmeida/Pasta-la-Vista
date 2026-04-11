@@ -1,5 +1,5 @@
 import React from 'react';
-import { createNativeStackNavigator } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SplashScreen } from '../screens/SplashScreen';
 import { LoginScreen } from '../screens/LoginScreen';
 import { RegisterScreen } from '../screens/RegisterScreen';
@@ -16,20 +16,20 @@ export const AuthNavigator: React.FC = () => {
       <Stack.Screen
         name="Splash"
         component={SplashScreen}
-        options={{ animationEnabled: false }}
+        options={{ animation: 'none' }}
       />
       <Stack.Screen
         name="Login"
         component={LoginScreen}
         options={{
-          cardStyle: { backgroundColor: '#FFFFFF' },
+          contentStyle: { backgroundColor: '#FFFFFF' },
         }}
       />
       <Stack.Screen
         name="Register"
         component={RegisterScreen}
         options={{
-          cardStyle: { backgroundColor: '#FFFFFF' },
+          contentStyle: { backgroundColor: '#FFFFFF' },
         }}
       />
     </Stack.Navigator>

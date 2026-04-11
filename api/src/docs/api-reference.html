@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pasta la Vista — API Reference</title>
+  <meta name="description" content="Documentacao completa da API Pasta la Vista - Delivery de Comida Italiana" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #FF6B35;
+      --primary-dark: #E55A2B;
+      --primary-light: #FFF0E6;
+      --bg: #0D0F14;
+      --bg-card: #141720;
+      --bg-card-hover: #1A1E2A;
+      --border: #2A2E3A;
+      --text: #E8E8ED;
+      --text-muted: #8B8FA3;
+      --text-dim: #5A5E72;
+      --green: #10B981;
+      --green-bg: rgba(16,185,129,.12);
+      --blue: #3B82F6;
+      --blue-bg: rgba(59,130,246,.12);
+      --yellow: #F59E0B;
+      --yellow-bg: rgba(245,158,11,.12);
+      --red: #EF4444;
+      --red-bg: rgba(239,68,68,.12);
+      --purple: #8B5CF6;
+      --purple-bg: rgba(139,92,246,.12);
+      --radius: 12px;
+      --radius-sm: 8px;
+      --font: 'Inter', -apple-system, sans-serif;
+      --mono: 'JetBrains Mono', 'Fira Code', monospace;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.6; }
+    a { color: var(--primary); text-decoration: none; transition: color .2s; }
+    a:hover { color: var(--primary-dark); }
+    code { font-family: var(--mono); font-size: .85em; background: rgba(255,107,53,.1); color: var(--primary); padding: 2px 6px; border-radius: 4px; }
+
+    /* NAV */
+    .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(13,15,20,.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); }
+    .nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; height: 64px; display: flex; align-items: center; justify-content: space-between; }
+    .nav-brand { display: flex; align-items: center; gap: 12px; }
+    .nav-logo { font-size: 20px; font-weight: 800; color: var(--primary); }
+    .nav-divider { width: 1px; height: 24px; background: var(--border); }
+    .nav-subtitle { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+    .nav-links { display: flex; gap: 6px; }
+    .nav-link { padding: 6px 14px; font-size: 13px; font-weight: 500; color: var(--text-muted); border-radius: 6px; transition: all .2s; }
+    .nav-link:hover { color: var(--text); background: var(--bg-card); }
+    .nav-link.active { color: var(--primary); background: rgba(255,107,53,.1); }
+    .nav-badge { display: inline-flex; padding: 3px 8px; font-size: 11px; font-weight: 700; border-radius: 20px; margin-left: 6px; }
+    .nav-badge.swagger { background: var(--green-bg); color: var(--green); }
+    .nav-badge.redoc { background: var(--blue-bg); color: var(--blue); }
+
+    /* HERO */
+    .hero { padding: 120px 24px 60px; text-align: center; position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 600px; height: 600px; background: radial-gradient(circle, rgba(255,107,53,.1) 0%, transparent 70%); pointer-events: none; }
+    .hero h1 { font-size: 48px; font-weight: 900; letter-spacing: -1px; margin-bottom: 12px; background: linear-gradient(135deg, var(--primary), #FFB347); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero p { font-size: 18px; color: var(--text-muted); max-width: 600px; margin: 0 auto 32px; }
+    .hero-version { display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; font-size: 13px; color: var(--text-muted); }
+    .hero-version strong { color: var(--green); }
+    .hero-links { display: flex; gap: 12px; justify-content: center; margin-top: 24px; }
+    .hero-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; transition: all .2s; border: 1px solid transparent; }
+    .hero-btn.primary { background: var(--primary); color: #fff; }
+    .hero-btn.primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    .hero-btn.secondary { background: transparent; border-color: var(--border); color: var(--text); }
+    .hero-btn.secondary:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* STATS */
+    .stats { display: flex; justify-content: center; gap: 32px; padding: 0 24px 48px; }
+    .stat { text-align: center;  }
+    .stat-value { font-size: 28px; font-weight: 800; color: var(--text); }
+    .stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+    /* SECTION */
+    .section { max-width: 1200px; margin: 0 auto; padding: 48px 24px; }
+    .section-header { margin-bottom: 32px; }
+    .section-tag { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--primary); margin-bottom: 8px; }
+    .section-title { font-size: 28px; font-weight: 800; letter-spacing: -.5px; }
+    .section-desc { font-size: 15px; color: var(--text-muted); margin-top: 8px; max-width: 600px; }
+
+    /* ENDPOINT CARDS */
+    .endpoints { display: flex; flex-direction: column; gap: 12px; }
+    .endpoint { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: all .2s; }
+    .endpoint:hover { border-color: rgba(255,107,53,.3); background: var(--bg-card-hover); }
+    .endpoint-header { display: flex; align-items: center; gap: 12px; padding: 16px 20px; cursor: pointer; }
+    .method { padding: 4px 10px; border-radius: 4px; font-family: var(--mono); font-size: 12px; font-weight: 700; text-transform: uppercase; min-width: 60px; text-align: center; }
+    .method.get { background: var(--green-bg); color: var(--green); }
+    .method.post { background: var(--blue-bg); color: var(--blue); }
+    .method.patch { background: var(--yellow-bg); color: var(--yellow); }
+    .method.delete { background: var(--red-bg); color: var(--red); }
+    .endpoint-path { font-family: var(--mono); font-size: 14px; font-weight: 500; color: var(--text); flex: 1; }
+    .endpoint-path .param { color: var(--primary); }
+    .endpoint-summary { font-size: 13px; color: var(--text-muted); }
+    .endpoint-badges { display: flex; gap: 6px; }
+    .badge { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .badge.auth { background: var(--purple-bg); color: var(--purple); }
+    .badge.admin { background: var(--red-bg); color: var(--red); }
+    .badge.cache { background: var(--green-bg); color: var(--green); }
+    .badge.public { background: rgba(255,255,255,.06); color: var(--text-dim); }
+
+    .endpoint-body { display: none; padding: 0 20px 20px; border-top: 1px solid var(--border); }
+    .endpoint.open .endpoint-body { display: block; padding-top: 16px; }
+    .endpoint-desc { font-size: 14px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.7; }
+
+    .params-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+    .params-table th { text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); padding: 8px 12px; border-bottom: 1px solid var(--border); }
+    .params-table td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid rgba(42,46,58,.5); }
+    .params-table td:first-child { font-family: var(--mono); color: var(--primary); }
+    .params-table .required { color: var(--red); font-size: 10px; margin-left: 4px; }
+    .params-table .type { font-family: var(--mono); color: var(--text-dim); font-size: 12px; }
+
+    .code-block { background: #0A0C10; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px; margin: 8px 0; overflow-x: auto; }
+    .code-block pre { font-family: var(--mono); font-size: 13px; line-height: 1.6; color: var(--text-muted); white-space: pre; }
+    .code-block .key { color: var(--blue); }
+    .code-block .str { color: var(--green); }
+    .code-block .num { color: var(--yellow); }
+    .code-block .label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-bottom: 8px; display: block; }
+
+    .response-codes { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .response-code { padding: 4px 10px; border-radius: 4px; font-family: var(--mono); font-size: 12px; font-weight: 600; }
+    .response-code.s200, .response-code.s201 { background: var(--green-bg); color: var(--green); }
+    .response-code.s400 { background: var(--yellow-bg); color: var(--yellow); }
+    .response-code.s401, .response-code.s403 { background: var(--purple-bg); color: var(--purple); }
+    .response-code.s404, .response-code.s409, .response-code.s422 { background: var(--red-bg); color: var(--red); }
+
+    /* SCHEMA SECTION */
+    .schemas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 16px; }
+    .schema-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; transition: all .2s; }
+    .schema-card:hover { border-color: rgba(255,107,53,.3); }
+    .schema-name { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .schema-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; }
+    .schema-props { list-style: none; }
+    .schema-props li { display: flex; align-items: baseline; gap: 8px; padding: 6px 0; border-bottom: 1px solid rgba(42,46,58,.3); font-size: 13px; }
+    .schema-props li:last-child { border-bottom: none; }
+    .schema-props .prop-name { font-family: var(--mono); color: var(--primary); min-width: 120px; font-size: 12px; }
+    .schema-props .prop-type { font-family: var(--mono); color: var(--text-dim); font-size: 11px; }
+
+    /* FOOTER */
+    .footer { border-top: 1px solid var(--border); padding: 32px 24px; text-align: center; }
+    .footer p { font-size: 13px; color: var(--text-dim); }
+    .footer a { color: var(--primary); }
+
+    /* TOGGLE */
+    .chevron { transition: transform .2s; color: var(--text-dim); font-size: 12px; }
+    .endpoint.open .chevron { transform: rotate(90deg); }
+
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 32px; }
+      .stats { flex-wrap: wrap; gap: 16px; }
+      .endpoint-summary { display: none; }
+      .schemas-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <div class="nav-brand">
+        <span class="nav-logo">Pasta la Vista</span>
+        <span class="nav-divider"></span>
+        <span class="nav-subtitle">API Reference</span>
+      </div>
+      <div class="nav-links">
+        <a href="#auth" class="nav-link">Auth</a>
+        <a href="#menu" class="nav-link">Cardapio</a>
+        <a href="#orders" class="nav-link">Pedidos</a>
+        <a href="#schemas" class="nav-link">Schemas</a>
+        <a href="/docs/swagger" class="nav-link">Swagger <span class="nav-badge swagger">UI</span></a>
+        <a href="/docs/redoc" class="nav-link">ReDoc <span class="nav-badge redoc">v3</span></a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <h1>Pasta la Vista API</h1>
+    <p>API RESTful completa para delivery de comida italiana com autenticacao JWT, cache Redis e sistema dual-database PostgreSQL + MongoDB</p>
+    <div class="hero-version">
+      <strong>v1.0.0</strong> &bull; OpenAPI 3.0.3 &bull; MIT License
+    </div>
+    <div class="hero-links">
+      <a href="/docs/swagger" class="hero-btn primary">Swagger UI</a>
+      <a href="/docs/redoc" class="hero-btn secondary">ReDoc</a>
+      <a href="/docs/openapi.json" class="hero-btn secondary">OpenAPI JSON</a>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat"><div class="stat-value">15</div><div class="stat-label">Endpoints</div></div>
+    <div class="stat"><div class="stat-value">5</div><div class="stat-label">Categorias</div></div>
+    <div class="stat"><div class="stat-value">12</div><div class="stat-label">Schemas</div></div>
+    <div class="stat"><div class="stat-value">3</div><div class="stat-label">Databases</div></div>
+  </div>
+
+  <!-- AUTH -->
+  <section id="auth" class="section">
+    <div class="section-header">
+      <div class="section-tag">Autenticacao</div>
+      <h2 class="section-title">Auth Endpoints</h2>
+      <p class="section-desc">Registro, login e gerenciamento de sessoes via JWT. Access tokens expiram em 15 minutos, refresh tokens em 7 dias.</p>
+    </div>
+    <div class="endpoints">
+      <!-- POST /auth/register -->
+      <div class="endpoint" onclick="toggleEndpoint(this)">
+        <div class="endpoint-header">
+          <span class="method post">POST</span>
+          <span class="endpoint-path">/api/v1/auth/register</span>
+          <span class="endpoint-summary">Registrar novo usuario</span>
+          <div class="endpoint-badges"><span class="badge public">Publico</span></div>
+          <span class="chevron">&#9654;</span>
+        </div>
+        <div class="endpoint-body">
+          <p class="endpoint-desc">Cria um novo usuario com role CLIENT. Retorna access e refresh tokens. A senha deve ter min 8 chars, 1 maiuscula, 1 minuscula e 1 numero.</p>
+          <table class="params-table">
+            <thead><tr><th>Campo</th><th>Tipo</th><th>Descricao</th></tr></thead>
+            <tbody>
+              <tr><td>name<span class="required">*</span></td><td><span class="type">string</span></td><td>Nome completo (3-100 chars)</td></tr>
+              <tr><td>email<span class="required">*</span></td><td><span class="type">string</span></td><td>Email unico</td></tr>
+              <tr><td>password<span class="required">*</span></td><td><span class="type">string</span></td><td>Senha forte (min 8 chars)</td></tr>
+              <tr><td>phone</td><td><span class="type">string</span></td><td>Telefone (opcional)</td></tr>
+            </tbody>
+          </table>
+          <div class="code-block">
+            <span class="label">Exemplo Request</span>
+            <pre>{
+  <span class="key">"name"</span>: <span class="str">"Maria Silva"</span>,
+  <span class="key">"email"</span>: <span class="str">"maria@email.com"</span>,
+  <span class="key">"password"</span>: <span class="str">"Senha123!"</span>,
+  <span class="key">"phone"</span>: <span class="str">"+5511999991111"</span>
+}</pre>
+          </div>
+          <div class="response-codes">
+            <span class="response-code s201">201 Created</span>
+            <span class="response-code s400">400 Validation</span>
+            <span class="response-code s409">409 Duplicate</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- POST /auth/login -->
+      <div class="endpoint" onclick="toggleEndpoint(this)">
+        <div class="endpoint-header">
+          <span class="method post">POST</span>
+          <span class="endpoint-path">/api/v1/auth/login</span>
+          <span class="endpoint-summary">Login</span>
+          <div class="endpoint-badges"><span class="badge public">Publico</span></div>
+          <span class="chevron">&#9654;</span>
+        </div>
+        <div class="endpoint-body">
+          <p class="endpoint-desc">Autentica com email e senha. Retorna access token (15min) e refresh token (7d).</p>
+          <div class="code-block">
+            <span class="label">Exemplo Request</span>
+            <pre>{
+  <span class="key">"email"</span>: <span class="str">"maria@email.com"</span>,
+  <span class="key">"password"</span>: <span class="str">"Senha123!"</span>
+}</pre>
+          </div>
+          <div class="code-block">
+            <span class="label">Exemplo Response 200</span>
+            <pre>{
+  <span class="key">"status"</span>: <span class="str">"success"</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"user"</span>: { <span class="key">"id"</span>: <span class="str">"uuid..."</span>, <span class="key">"name"</span>: <span class="str">"Maria Silva"</span>, <span class="key">"role"</span>: <span class="str">"CLIENT"</span> },
+    <span class="key">"access_token"</span>: <span class="str">"eyJhbG..."</span>,
+    <span class="key">"refresh_token"</span>: <span class="str">"eyJhbG..."</span>
+  }
+}</pre>
+          </div>
+          <div class="response-codes">
+            <span class="response-code s200">200 OK</span>
+            <span class="response-code s400">400 Validation</span>
+            <span class="response-code s401">401 Unauthorized</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- POST /auth/refresh -->
+      <div class="endpoint" onclick="toggleEndpoint(this)">
+        <div class="endpoint-header">
+          <span class="method post">POST</span>
+          <span class="endpoint-path">/api/v1/auth/refresh</span>
+          <span class="endpoint-summary">Renovar tokens</span>
+          <div class="endpoint-badges"><span class="badge auth">JWT</span></div>
+          <span class="chevron">&#9654;</span>
+        </div>
+        <div class="endpoint-body">
+          <p class="endpoint-desc">Usa o refresh token para obter novos access e refresh tokens. O refresh token anterior e invalidado.</p>
+          <div class="response-codes">
+            <span class="response-code s200">200 OK</span>
+            <span class="response-code s401">401 Unauthorized</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- POST /auth/logout -->
+      <div class="endpoint" onclick="toggleEndpoint(this)">
+        <div class="endpoint-header">
+          <span class="method post">POST</span>
+          <span class="endpoint-path">/api/v1/auth/logout</span>
+          <span class="endpoint-summary">Logout</span>
+          <div class="endpoint-badges"><span class="badge auth">JWT</span></div>
+          <span class="chevron">&#9654;</span>
+        </div>
+        <div class="endpoint-body">
+          <p class="endpoint-desc">Remove a sessao do Redis, invalidando o refresh token.</p>
+          <div class="response-codes">
+            <span class="response-code s200">200 OK</span>
+            <span class="response-code s401">401 Unauthorized</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MENU -->
+  <section id="menu" class="section">
+    <div class="section-header">
+      <div class="section-tag">Cardapio</div>
+      <h2 class="section-title">Menu Endpoints</h2>
+      <p class="section-desc">Consulta de produtos com cache Redis. Endpoints publicos para leitura, admin-only para escrita.</p>
+    </div>
+    <div class="endpoints">
+      <div class="endpoint" onclick="toggleEndpoint(this)">
+        <div class="endpoint-header">
+          <span class="method get">GET</span>
+          <span class="endpoint-path">/api/v1/menu</span>
+          <span class="endpoint-summary">Listar cardapio</span>
+          <div class="endpoint-badges"><span class="badge public">Publico</span><span class="badge cache">Cache 5min</span></div>
+          <span class="chevron">&#9654;</span>
+        </div>
+        <div class="endpoint-body">
+          <p class="endpoint-desc">Retorna todos os produtos ativos ordenados por categoria e nome. Resultado cacheado no Redis (key: <code>menu:all</code>) por 5 minutos.</p>
+          <div class="response-codes"><span class="response-code s200">200 OK</span></div>
+        </div>
+      </div>
+
+      <div class="endpoint" onclick="toggleEndpoint(this)">
+        <div class="endpoint-header">
+          <span class="method get">GET</span>
+          <span class="endpoint-path">/api/v1/menu/search?q=<span class="param">{query}</span></span>
+          <span class="endpoint-summary">Buscar produtos</span>
+          <div class="endpoint-badges"><span class="badge public">Publico</span></div>
+          <span class="chevron">&#9654;</span>
+        </div>
+        <div class="endpoint-body">
+          <p class="endpoint-desc">Busca por nome usando regex case-insensitive. Limite de 20 resultados. Sem cache para resultados real-time.</p>
+          <table class="params-table">
+            <thead><tr><th>Param</th><th>Tipo</th><th>Descricao</th></tr></thead>
+            <tbody><tr><td>q<span class="required">*</span></td><td><span class="type">query string</span></td><td>Termo de busca (min 1 char)</td></tr></tbody>
+          </table>
+          <div class="response-codes"><span class="response-code s200">200 OK</span><span class="response-code s400">400 Missing Query</span></div>
+        </div>
+      </div>
+
+      <div class="endpoint" onclick="toggleEndpoint(this)">
+        <div class="endpoint-header">
+          <span class="method get">GET</span>
+          <span class="endpoint-path">/api/v1/menu/category/<span class="param">{category}</span></span>
+          <span class="endpoint-summary">Filtrar por categoria</span>
+          <div class="endpoint-badges"><span class="badge public">Publico</span><span class="badge cache">Cache 5min</span></div>
+          <span class="chevron">&#9654;</span>
+        </div>
+        <div class="endpoint-body">
+          <p class="endpoint-desc">Categorias validas: <code>pizzas</code>, <code>bebidas</code>, <code>sobremesas</code>, <code>massas</code>, <code>aperitivos</code></p>
+          <div class="response-codes"><span class="response-code s200">200 OK</span></div>
+        </div>
+      </div>
+
+      <div class="endpoint" onclick="toggleEndpoint(this)">
+        <div class="endpoint-header">
+          <span class="method get">GET</span>
+          <span class="endpoint-path">/api/v1/menu/<span class="param">{id}</span></span>
+          <span class="endpoint-summary">Detalhe do produto</span>
+          <div class="endpoint-badges"><span class="badge public">Publico</span><span class="badge cache">Cache 10min</span></div>
+          <span class="chevron">&#9654;</span>
+        </div>
+        <div class="endpoint-body">
+          <p class="endpoint-desc">Retorna detalhes completos incluindo customizacoes disponiveis. <code>id</code> e um MongoDB ObjectId.</p>
+          <div class="response-codes"><span class="response-code s200">200 OK</span><span class="response-code s404">404 Not Found</span></div>
+        </div>
+      </div>
+
+      <div class="endpoint" onclick="toggleEndpoint(this)">
+        <div class="endpoint-header">
+          <span class="method post">POST</span>
+          <span class="endpoint-path">/api/v1/menu</span>
+          <span class="endpoint-summary">Criar produto</span>
+          <div class="endpoint-badges"><span class="badge auth">JWT</span><span class="badge admin">ADMIN</span></div>
+          <span class="chevron">&#9654;</span>
+        </div>
+        <div class="endpoint-body">
+          <p class="endpoint-desc">Cria novo produto. Invalida todo o cache do cardapio.</p>
+          <div class="code-block">
+            <span class="label">Exemplo Request</span>
+            <pre>{
+  <span class="key">"name"</span>: <span class="str">"Pizza Napolitana"</span>,
+  <span class="key">"description"</span>: <span class="str">"Molho de tomate, anchovas, alcaparras"</span>,
+  <span class="key">"price"</span>: <span class="num">46.90</span>,
+  <span class="key">"category"</span>: <span class="str">"pizzas"</span>,
+  <span class="key">"preparation_time"</span>: <span class="num">25</span>,
+  <span class="key">"customizations"</span>: [
+    { <span class="key">"type"</span>: <span class="str">"size"</span>, <span class="key">"name"</span>: <span class="str">"Pequena"</span>, <span class="key">"price_modifier"</span>: <span class="num">0</span> },
+    { <span class="key">"type"</span>: <span class="str">"size"</span>, <span class="key">"name"</span>: <span class="str">"Grande"</span>, <span class="key">"price_modifier"</span>: <span class="num">20</span> }
+  ]
+}</pre>
+          </div>
+          <div class="response-codes"><span class="response-code s201">201 Created</span><span class="response-code s400">400 Validation</span><span class="response-code s401">401 Unauthorized</span><span class="response-code s403">403 Forbidden</span></div>
+        </div>
+      </div>
+
+      <div class="endpoint" onclick="toggleEndpoint(this)">
+        <div class="endpoint-header">
+          <span class="method patch">PATCH</span>
+          <span class="endpoint-path">/api/v1/menu/<span class="param">{id}</span></span>
+          <span class="endpoint-summary">Atualizar produto</span>
+          <div class="endpoint-badges"><span class="badge auth">JWT</span><span class="badge admin">ADMIN</span></div>
+          <span class="chevron">&#9654;</span>
+        </div>
+        <div class="endpoint-body">
+          <p class="endpoint-desc">Partial update — envie apenas os campos a alterar.</p>
+          <div class="response-codes"><span class="response-code s200">200 OK</span><span class="response-code s401">401</span><span class="response-code s403">403</span><span class="response-code s404">404</span></div>
+        </div>
+      </div>
+
+      <div class="endpoint" onclick="toggleEndpoint(this)">
+        <div class="endpoint-header">
+          <span class="method delete">DELETE</span>
+          <span class="endpoint-path">/api/v1/menu/<span class="param">{id}</span></span>
+          <span class="endpoint-summary">Soft delete produto</span>
+          <div class="endpoint-badges"><span class="badge auth">JWT</span><span class="badge admin">ADMIN</span></div>
+          <span class="chevron">&#9654;</span>
+        </div>
+        <div class="endpoint-body">
+          <p class="endpoint-desc">Define <code>active: false</code>. O produto nao aparece mais nas listagens.</p>
+          <div class="response-codes"><span class="response-code s200">200 OK</span><span class="response-code s401">401</span><span class="response-code s403">403</span><span class="response-code s404">404</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ORDERS -->
+  <section id="orders" class="section">
+    <div class="section-header">
+      <div class="section-tag">Pedidos</div>
+      <h2 class="section-title">Order Endpoints</h2>
+      <p class="section-desc">Criacao e consulta de pedidos. Todos os endpoints requerem autenticacao. Precos sao calculados server-side.</p>
+    </div>
+    <div class="endpoints">
+      <div class="endpoint" onclick="toggleEndpoint(this)">
+        <div class="endpoint-header">
+          <span class="method post">POST</span>
+          <span class="endpoint-path">/api/v1/orders</span>
+          <span class="endpoint-summary">Criar pedido</span>
+          <div class="endpoint-badges"><span class="badge auth">JWT</span></div>
+          <span class="chevron">&#9654;</span>
+        </div>
+        <div class="endpoint-body">
+          <p class="endpoint-desc">Valida produtos, verifica estoque, calcula precos server-side, salva em PostgreSQL + MongoDB, decrementa estoque. Delivery: R$ 5,00 fixo.</p>
+          <div class="code-block">
+            <span class="label">Exemplo Request</span>
+            <pre>{
+  <span class="key">"items"</span>: [{
+    <span class="key">"product_id"</span>: <span class="str">"507f1f77bcf86cd799439011"</span>,
+    <span class="key">"quantity"</span>: <span class="num">2</span>,
+    <span class="key">"customizations"</span>: [{ <span class="key">"customization_id"</span>: <span class="str">"cust1"</span>, <span class="key">"price_modifier"</span>: <span class="num">10</span> }]
+  }],
+  <span class="key">"address"</span>: {
+    <span class="key">"street"</span>: <span class="str">"Rua das Flores"</span>, <span class="key">"number"</span>: <span class="str">"42"</span>,
+    <span class="key">"city"</span>: <span class="str">"Sao Paulo"</span>, <span class="key">"state"</span>: <span class="str">"SP"</span>, <span class="key">"zip"</span>: <span class="str">"01234-567"</span>
+  },
+  <span class="key">"notes"</span>: <span class="str">"Sem cebola"</span>,
+  <span class="key">"payment_method"</span>: <span class="str">"PIX"</span>
+}</pre>
+          </div>
+          <div class="response-codes"><span class="response-code s201">201 Created</span><span class="response-code s400">400</span><span class="response-code s401">401</span><span class="response-code s422">422 Stock</span></div>
+        </div>
+      </div>
+
+      <div class="endpoint" onclick="toggleEndpoint(this)">
+        <div class="endpoint-header">
+          <span class="method get">GET</span>
+          <span class="endpoint-path">/api/v1/orders</span>
+          <span class="endpoint-summary">Listar meus pedidos</span>
+          <div class="endpoint-badges"><span class="badge auth">JWT</span></div>
+          <span class="chevron">&#9654;</span>
+        </div>
+        <div class="endpoint-body">
+          <p class="endpoint-desc">Retorna apenas os pedidos do usuario autenticado, ordenados por data decrescente.</p>
+          <div class="response-codes"><span class="response-code s200">200 OK</span><span class="response-code s401">401</span></div>
+        </div>
+      </div>
+
+      <div class="endpoint" onclick="toggleEndpoint(this)">
+        <div class="endpoint-header">
+          <span class="method get">GET</span>
+          <span class="endpoint-path">/api/v1/orders/<span class="param">{id}</span></span>
+          <span class="endpoint-summary">Detalhe do pedido</span>
+          <div class="endpoint-badges"><span class="badge auth">JWT</span></div>
+          <span class="chevron">&#9654;</span>
+        </div>
+        <div class="endpoint-body">
+          <p class="endpoint-desc">Security check: apenas o dono do pedido pode visualiza-lo. Retorna 404 se tentar ver pedido de outro usuario.</p>
+          <div class="response-codes"><span class="response-code s200">200 OK</span><span class="response-code s401">401</span><span class="response-code s404">404</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCHEMAS -->
+  <section id="schemas" class="section">
+    <div class="section-header">
+      <div class="section-tag">Modelos</div>
+      <h2 class="section-title">Data Schemas</h2>
+      <p class="section-desc">Schemas de dados usados nos requests e responses da API.</p>
+    </div>
+    <div class="schemas-grid">
+      <div class="schema-card">
+        <div class="schema-name">Product</div>
+        <div class="schema-desc">Produto do cardapio armazenado no MongoDB</div>
+        <ul class="schema-props">
+          <li><span class="prop-name">_id</span> <span class="prop-type">ObjectId</span></li>
+          <li><span class="prop-name">name</span> <span class="prop-type">string</span></li>
+          <li><span class="prop-name">description</span> <span class="prop-type">string</span></li>
+          <li><span class="prop-name">price</span> <span class="prop-type">number</span></li>
+          <li><span class="prop-name">category</span> <span class="prop-type">enum</span></li>
+          <li><span class="prop-name">customizations</span> <span class="prop-type">Customization[]</span></li>
+          <li><span class="prop-name">preparation_time</span> <span class="prop-type">integer (min)</span></li>
+          <li><span class="prop-name">active</span> <span class="prop-type">boolean</span></li>
+        </ul>
+      </div>
+      <div class="schema-card">
+        <div class="schema-name">Order</div>
+        <div class="schema-desc">Pedido armazenado em PostgreSQL + MongoDB</div>
+        <ul class="schema-props">
+          <li><span class="prop-name">id</span> <span class="prop-type">UUID</span></li>
+          <li><span class="prop-name">userId</span> <span class="prop-type">UUID</span></li>
+          <li><span class="prop-name">items</span> <span class="prop-type">OrderItem[]</span></li>
+          <li><span class="prop-name">subtotal</span> <span class="prop-type">number</span></li>
+          <li><span class="prop-name">delivery_fee</span> <span class="prop-type">number (R$ 5)</span></li>
+          <li><span class="prop-name">total</span> <span class="prop-type">number</span></li>
+          <li><span class="prop-name">status</span> <span class="prop-type">enum (6 states)</span></li>
+          <li><span class="prop-name">payment_method</span> <span class="prop-type">PIX|CARD|CASH</span></li>
+        </ul>
+      </div>
+      <div class="schema-card">
+        <div class="schema-name">Customization</div>
+        <div class="schema-desc">Opcao de customizacao de produto</div>
+        <ul class="schema-props">
+          <li><span class="prop-name">_id</span> <span class="prop-type">ObjectId</span></li>
+          <li><span class="prop-name">type</span> <span class="prop-type">size | ingredient</span></li>
+          <li><span class="prop-name">name</span> <span class="prop-type">string</span></li>
+          <li><span class="prop-name">price_modifier</span> <span class="prop-type">number (R$)</span></li>
+          <li><span class="prop-name">available</span> <span class="prop-type">boolean</span></li>
+        </ul>
+      </div>
+      <div class="schema-card">
+        <div class="schema-name">Address</div>
+        <div class="schema-desc">Endereco de entrega</div>
+        <ul class="schema-props">
+          <li><span class="prop-name">street</span> <span class="prop-type">string</span></li>
+          <li><span class="prop-name">number</span> <span class="prop-type">string</span></li>
+          <li><span class="prop-name">complement</span> <span class="prop-type">string?</span></li>
+          <li><span class="prop-name">city</span> <span class="prop-type">string</span></li>
+          <li><span class="prop-name">state</span> <span class="prop-type">string (2 chars)</span></li>
+          <li><span class="prop-name">zip</span> <span class="prop-type">XXXXX-XXX</span></li>
+        </ul>
+      </div>
+      <div class="schema-card">
+        <div class="schema-name">AuthResponse</div>
+        <div class="schema-desc">Resposta de autenticacao</div>
+        <ul class="schema-props">
+          <li><span class="prop-name">user.id</span> <span class="prop-type">UUID</span></li>
+          <li><span class="prop-name">user.name</span> <span class="prop-type">string</span></li>
+          <li><span class="prop-name">user.email</span> <span class="prop-type">string</span></li>
+          <li><span class="prop-name">user.role</span> <span class="prop-type">CLIENT | ADMIN</span></li>
+          <li><span class="prop-name">access_token</span> <span class="prop-type">JWT (15min)</span></li>
+          <li><span class="prop-name">refresh_token</span> <span class="prop-type">JWT (7d)</span></li>
+        </ul>
+      </div>
+      <div class="schema-card">
+        <div class="schema-name">ErrorResponse</div>
+        <div class="schema-desc">Padrao de erro da API</div>
+        <ul class="schema-props">
+          <li><span class="prop-name">status</span> <span class="prop-type">"error"</span></li>
+          <li><span class="prop-name">message</span> <span class="prop-type">string</span></li>
+          <li><span class="prop-name">errors</span> <span class="prop-type">{field, message}[]</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <p>Pasta la Vista API v1.0.0 &bull; <a href="/docs/swagger">Swagger</a> &bull; <a href="/docs/redoc">ReDoc</a> &bull; <a href="/docs/openapi.json">OpenAPI JSON</a></p>
+    <p style="margin-top: 8px;">Feito por Augusto Almeida &bull; MIT License &bull; 2026</p>
+  </footer>
+
+  <script>
+    function toggleEndpoint(el) {
+      el.classList.toggle('open');
+    }
+
+    // Active nav link on scroll
+    const sections = document.querySelectorAll('.section[id]');
+    const navLinks = document.querySelectorAll('.nav-link');
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(s => {
+        if (window.scrollY >= s.offsetTop - 100) current = s.id;
+      });
+      navLinks.forEach(link => {
+        link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+      });
+    });
+  </script>
+</body>
+</html>

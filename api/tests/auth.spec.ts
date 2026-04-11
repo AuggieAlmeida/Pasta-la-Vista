@@ -1,17 +1,32 @@
 import request from 'supertest';
 import app from '../src/app';
-import { prisma } from '../src/config/database';
+import { prisma, redis, connectDatabases, disconnectDatabases } from '../src/config/database';
 import bcrypt from 'bcrypt';
 
 describe('Auth Endpoints', () => {
   beforeAll(async () => {
-    // Limpar banco antes dos testes
+    // Initialize databases (including Redis)
+    await connectDatabases();
+
+    // Wait a bit for Redis to be ready
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    // Limpar dados dos bancos antes dos testes
     await prisma.orderItem.deleteMany();
     await prisma.order.deleteMany();
     await prisma.payment.deleteMany();
     await prisma.stock.deleteMany();
     await prisma.user.deleteMany();
-  });
+
+    // Clear Redis cache
+    if (redis) {
+      try {
+        await redis.flushdb();
+      } catch (error) {
+        console.error('Erro ao limpar Redis:', error);
+      }
+    }
+  }, 30000);
 
   afterAll(async () => {
     // Limpar e desconectar
@@ -20,7 +35,18 @@ describe('Auth Endpoints', () => {
     await prisma.payment.deleteMany();
     await prisma.stock.deleteMany();
     await prisma.user.deleteMany();
-    await prisma.$disconnect();
+
+    // Clear Redis cache
+    if (redis) {
+      try {
+        await redis.flushdb();
+      } catch (error) {
+        console.error('Erro ao limpar Redis:', error);
+      }
+    }
+
+    // Disconnect all databases
+    await disconnectDatabases();
   });
 
   describe('POST /api/v1/auth/register', () => {

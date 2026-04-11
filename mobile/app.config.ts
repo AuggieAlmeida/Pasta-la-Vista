@@ -1,12 +1,33 @@
-import { ExpoConfig, getDefaultConfig } from 'expo/config';
-
-const config = getDefaultConfig(__dirname);
+import { ExpoConfig } from 'expo/config';
 
 const expoConfig: ExpoConfig = {
-  ...config,
+  name: 'Pasta la Vista',
+  slug: 'pasta-la-vista-mobile',
+  version: '0.1.0',
+  orientation: 'portrait',
+  icon: './assets/icon.png',
+  userInterfaceStyle: 'light',
+  plugins: [],
   extra: {
     apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:3333',
     stripePk: process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || '',
+    eas: {
+      projectId: process.env.EXPO_PROJECT_ID,
+    },
+  },
+  ios: {
+    supportsTablet: true,
+    bundleIdentifier: 'com.pastalavista.mobile',
+  },
+  android: {
+    adaptiveIcon: {
+      foregroundImage: './assets/adaptive-icon.png',
+      backgroundColor: '#ffffff',
+    },
+  },
+  web: {
+    bundler: 'metro',
+    favicon: './assets/favicon.png',
   },
 };
 

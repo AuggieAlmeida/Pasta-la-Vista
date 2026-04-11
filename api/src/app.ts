@@ -2,12 +2,18 @@ import express, { Express, NextFunction, Request, Response } from 'express';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import authRouter from './routes/auth.routes';
+import menuRouter from './routes/menu.routes';
+import orderRouter from './routes/order.routes';
+import docsRouter from './docs/docs.routes';
+import { AppError } from './utils/errors';
 
 const app: Express = express();
 
 // Middleware de CORS
 app.use(cors({
-  origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:3000', 'http://localhost:8081'],
+  origin: process.env.NODE_ENV === 'production'
+    ? (process.env.CORS_ORIGIN?.split(',') || [])
+    : true, // Permitir qualquer origem em desenvolvimento (mobile, simulador, etc.)
   credentials: true,
 }));
 
@@ -18,14 +24,14 @@ app.use(express.urlencoded({ extended: true }));
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100, // limite de 100 requisições por janela
-  message: 'Muitas requisições, tente novamente depois.',
+  max: 100, // limite de 100 requisicoes por janela
+  message: 'Muitas requisicoes, tente novamente depois.',
 });
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20, // limite menor para auth
-  message: 'Muitas tentativas de autenticação, tente novamente depois.',
+  message: 'Muitas tentativas de autenticacao, tente novamente depois.',
 });
 
 app.use(limiter);
@@ -39,13 +45,13 @@ app.get('/health', (_req: Request, res: Response) => {
   });
 });
 
+// Documentation (Swagger, ReDoc, API Reference)
+app.use('/docs', docsRouter);
+
 // Routes
 app.use('/api/v1/auth', authLimiter, authRouter);
-
-// Placeholder routers (virão em sprints futuros)
-// app.use('/api/v1/menu', menuRouter);
-// app.use('/api/v1/orders', orderRouter);
-// app.use('/api/v1/stock', stockRouter);
+app.use('/api/v1/menu', menuRouter);
+app.use('/api/v1/orders', orderRouter);
 
 // 404 handler
 app.use((_req: Request, res: Response) => {
@@ -58,6 +64,18 @@ app.use((_req: Request, res: Response) => {
 // Error handler
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   console.error('Erro:', err);
+
+  // Check if it's an AppError
+  if (err instanceof AppError) {
+    res.status(err.statusCode).json({
+      status: 'error',
+      message: err.message,
+      ...(process.env.NODE_ENV === 'development' && { details: err.details }),
+    });
+    return;
+  }
+
+  // Default to 500 for unknown errors
   res.status(500).json({
     status: 'error',
     message: process.env.NODE_ENV === 'production'

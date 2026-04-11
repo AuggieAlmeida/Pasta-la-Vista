@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 import { prisma, redis } from '../../config/database';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../../utils/jwt';
 import { RegisterInput, LoginInput } from './auth.schema';
+import { ValidationError, UnauthorizedError } from '../../utils/errors';
 
 const SALT_ROUNDS = 10;
 const REFRESH_TOKEN_TTL = 7 * 24 * 60 * 60; // 7 dias em segundos
@@ -25,7 +26,7 @@ export const authService = {
     });
 
     if (existingUser) {
-      throw new Error('Email já cadastrado');
+      throw new ValidationError('Email já cadastrado');
     }
 
     // Hash senha
@@ -47,7 +48,10 @@ export const authService = {
     const refresh_token = signRefreshToken(user.id);
 
     // Armazenar refresh token no Redis
-    await redis!.setex(
+    if (!redis) {
+      throw new Error('Redis não inicializado');
+    }
+    await redis.setex(
       `refresh_token:${user.id}`,
       REFRESH_TOKEN_TTL,
       refresh_token
@@ -72,14 +76,14 @@ export const authService = {
     });
 
     if (!user) {
-      throw new Error('Credenciais inválidas');
+      throw new ValidationError('Credenciais inválidas');
     }
 
     // Validar senha
     const isPasswordValid = await bcrypt.compare(dto.password, user.passwordHash);
 
     if (!isPasswordValid) {
-      throw new Error('Credenciais inválidas');
+      throw new ValidationError('Credenciais inválidas');
     }
 
     // Gerar tokens
@@ -87,7 +91,10 @@ export const authService = {
     const refresh_token = signRefreshToken(user.id);
 
     // Armazenar refresh token no Redis
-    await redis!.setex(
+    if (!redis) {
+      throw new Error('Redis não inicializado');
+    }
+    await redis.setex(
       `refresh_token:${user.id}`,
       REFRESH_TOKEN_TTL,
       refresh_token
@@ -110,14 +117,17 @@ export const authService = {
     try {
       verifyRefreshToken(refresh_token);
     } catch (error) {
-      throw new Error('Refresh token inválido');
+      throw new ValidationError('Refresh token inválido');
     }
 
     // Verificar se token está no Redis
-    const storedToken = await redis!.get(`refresh_token:${userId}`);
+    if (!redis) {
+      throw new Error('Redis não inicializado');
+    }
+    const storedToken = await redis.get(`refresh_token:${userId}`);
 
     if (storedToken !== refresh_token) {
-      throw new Error('Refresh token não encontrado ou expirou');
+      throw new ValidationError('Refresh token não encontrado ou expirou');
     }
 
     // Buscar usuário
@@ -126,7 +136,7 @@ export const authService = {
     });
 
     if (!user) {
-      throw new Error('Usuário não encontrado');
+      throw new UnauthorizedError('Usuário não encontrado');
     }
 
     // Gerar novos tokens
@@ -134,7 +144,7 @@ export const authService = {
     const new_refresh_token = signRefreshToken(user.id);
 
     // Atualizar refresh token no Redis
-    await redis!.setex(
+    await redis.setex(
       `refresh_token:${user.id}`,
       REFRESH_TOKEN_TTL,
       new_refresh_token
@@ -148,6 +158,9 @@ export const authService = {
 
   async logout(userId: string): Promise<void> {
     // Deletar refresh token do Redis
-    await redis!.del(`refresh_token:${userId}`);
+    if (!redis) {
+      throw new Error('Redis não inicializado');
+    }
+    await redis.del(`refresh_token:${userId}`);
   },
 };
