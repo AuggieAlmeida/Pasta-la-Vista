@@ -29,7 +29,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
       <FontAwesome6 name="bowl-food" size={80} color="#FF6B35" style={styles.logo} />
       <Text style={styles.title}>Pasta la vista</Text>
       <ActivityIndicator size="large" color="#FF6B35" />
-      <Text style={styles.version}>v0.1.0</Text>
+      <Text style={styles.version}>v0.6.0</Text>
     </View>
   );
 };

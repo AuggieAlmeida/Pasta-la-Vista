@@ -12,7 +12,7 @@ export const CreateProductSchema = z.object({
     .positive('Preco deve ser maior que zero')
     .max(99999, 'Preco maximo excedido'),
   image: z.string().url('URL da imagem invalida').optional().default(''),
-  category: z.enum(['pizzas', 'bebidas', 'sobremesas', 'massas', 'aperitivos'], {
+  category: z.enum(['pizzas', 'bebidas', 'sobremesas', 'massas', 'entradas', 'saladas'], {
     errorMap: () => ({ message: 'Categoria invalida' }),
   }),
   active: z.boolean().optional().default(true),
@@ -23,7 +23,7 @@ export const CreateProductSchema = z.object({
     .default(30),
   customizations: z.array(
     z.object({
-      type: z.enum(['size', 'ingredient'], {
+      type: z.enum(['size', 'ingredient', 'variation'], {
         errorMap: () => ({ message: 'Tipo de customizacao invalido' }),
       }),
       name: z.string().min(1, 'Nome da customizacao e obrigatorio'),
@@ -40,7 +40,7 @@ export const SearchQuerySchema = z.object({
 });
 
 export const CategoryParamSchema = z.object({
-  category: z.enum(['pizzas', 'bebidas', 'sobremesas', 'massas', 'aperitivos'], {
+  category: z.enum(['pizzas', 'bebidas', 'sobremesas', 'massas', 'entradas', 'saladas'], {
     errorMap: () => ({ message: 'Categoria invalida' }),
   }),
 });

@@ -10,9 +10,19 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { ordersApi } from '../../api/endpoints/orders.api';
+import { IOrder } from '../../types/menu';
+import { Feather, FontAwesome5 } from '@expo/vector-icons';
+
+const hasStructuredAddress = (order: IOrder): boolean => {
+  const a = order.address;
+  if (!a) return false;
+  return Boolean(a.street?.trim() && a.city?.trim());
+};
 
 type RouteParams = {
-  OrderConfirmation: { orderId: string };
+  OrderConfirmation: {
+    orderId: string;
+  };
 };
 
 const formatPrice = (price: number): string => {
@@ -31,7 +41,7 @@ const formatDate = (dateStr: string): string => {
 };
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  PENDING: { label: 'Aguardando Confirmacao', color: '#F59E0B' },
+  PENDING: { label: 'Aguardando Pagamento', color: '#F59E0B' },
   CONFIRMED: { label: 'Confirmado', color: '#3B82F6' },
   PREPARING: { label: 'Em Preparo', color: '#8B5CF6' },
   READY: { label: 'Pronto', color: '#10B981' },
@@ -58,6 +68,10 @@ export const OrderConfirmationScreen: React.FC = () => {
   const handleContinueShopping = useCallback(() => {
     navigation.navigate('Menu');
   }, [navigation]);
+
+  const handleGoToPayment = useCallback(() => {
+    navigation.navigate('Payment', { order });
+  }, [navigation, order]);
 
   if (isLoading) {
     return (
@@ -107,6 +121,76 @@ export const OrderConfirmationScreen: React.FC = () => {
           {statusInfo.label}
         </Text>
       </View>
+
+      {/* Payment Status Box */}
+      <View style={styles.paymentInfoBox}>
+        {order.status === 'CANCELLED' ? (
+          <View style={styles.paymentInfoRow}>
+            <FontAwesome5 name="times-circle" size={18} color="#EF4444" />
+            <Text style={[styles.paymentInfoText, { color: '#EF4444' }]}> Pedido Cancelado</Text>
+          </View>
+        ) : order.status !== 'PENDING' ? (
+          <View style={styles.paymentInfoRow}>
+            <FontAwesome5 name="check-circle" size={18} color="#10B981" />
+            <Text style={[styles.paymentInfoText, { color: '#10B981', fontWeight: '700' }]}>
+               Pagamento / Envio Confirmado!
+            </Text>
+          </View>
+        ) : order.payment_method === 'CASH' ? (
+          <View style={styles.paymentInfoRow}>
+            <FontAwesome5 name="money-bill-wave" size={16} color="#4B5563" />
+            <Text style={styles.paymentInfoText}> O pagamento sera feito na entrega</Text>
+          </View>
+        ) : order.payment_method === 'PIX' ? (
+          <View style={styles.paymentInfoRow}>
+            <FontAwesome5 name="clock" size={18} color="#4B5563" />
+            <Text style={styles.paymentInfoText}> Aguardando transferencia PIX na loja</Text>
+          </View>
+        ) : (
+          <View style={styles.paymentInfoRow}>
+            <FontAwesome5 name="clock" size={18} color="#4B5563" />
+            <Text style={styles.paymentInfoText}>
+              Pagamento com cartão: toque no botão verde no final da tela para confirmar o pagamento.
+            </Text>
+          </View>
+        )}
+      </View>
+
+      {/* Endereço / mesa / retirada (usa dados persistidos no pedido) */}
+      {(hasStructuredAddress(order) ||
+        order.table_number ||
+        order.delivery_mode === 'PICKUP' ||
+        order.delivery_mode === 'DINE_IN') && (
+        <View style={styles.logisticsCard}>
+          <Text style={styles.sectionTitle}>Entrega ou retirada</Text>
+          {hasStructuredAddress(order) && order.address ? (
+            <>
+              <Text style={styles.logisticsLabel}>Endereço</Text>
+              <Text style={styles.logisticsText}>
+                {order.address.street}, {order.address.number}
+                {order.address.complement ? ` — ${order.address.complement}` : ''}
+              </Text>
+              <Text style={styles.logisticsMuted}>
+                {order.address.city} — {order.address.state} · CEP {order.address.zip}
+              </Text>
+            </>
+          ) : null}
+          {order.table_number ? (
+            <>
+              <Text style={[styles.logisticsLabel, { marginTop: hasStructuredAddress(order) ? 12 : 0 }]}>
+                Mesa
+              </Text>
+              <Text style={styles.logisticsText}>{order.table_number}</Text>
+            </>
+          ) : null}
+          {order.delivery_mode === 'PICKUP' && !hasStructuredAddress(order) ? (
+            <Text style={styles.logisticsText}>Retirada na loja</Text>
+          ) : null}
+          {order.delivery_mode === 'DINE_IN' && !order.table_number ? (
+            <Text style={styles.logisticsText}>Consumo no local</Text>
+          ) : null}
+        </View>
+      )}
 
       {/* Order Items */}
       <Text style={styles.sectionTitle}>Itens do Pedido</Text>
@@ -169,6 +253,18 @@ export const OrderConfirmationScreen: React.FC = () => {
       <Text style={styles.refreshNotice}>
         Status atualizado automaticamente a cada 15 segundos
       </Text>
+
+      {/* Payment Action */}
+      {order.status === 'PENDING' && order.payment_method === 'CREDIT_CARD' && (
+        <TouchableOpacity
+          style={styles.payNowButton}
+          onPress={handleGoToPayment}
+          activeOpacity={0.8}
+        >
+          <Feather name="credit-card" size={20} color="#FFFFFF" />
+          <Text style={styles.payNowButtonText}>Pagar Agora com Cartão</Text>
+        </TouchableOpacity>
+      )}
 
       {/* Continue Shopping */}
       <TouchableOpacity
@@ -270,6 +366,53 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
   },
+  paymentInfoBox: {
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignSelf: 'stretch',
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    alignItems: 'center',
+  },
+  paymentInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  paymentInfoText: {
+    fontSize: 15,
+    color: '#4B5563',
+    fontWeight: '600',
+    flex: 1,
+  },
+  logisticsCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  logisticsLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#6B7280',
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  logisticsText: {
+    fontSize: 15,
+    color: '#1a1a1a',
+    fontWeight: '600',
+  },
+  logisticsMuted: {
+    fontSize: 13,
+    color: '#6B7280',
+    marginTop: 4,
+  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
@@ -364,10 +507,31 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
+    marginBottom: 12,
   },
   continueButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
+  },
+  payNowButton: {
+    backgroundColor: '#059669', // Verde para o call to action principal de pagar
+    borderRadius: 12,
+    paddingVertical: 16,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+    shadowColor: '#10B981',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  payNowButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '800',
   },
 });

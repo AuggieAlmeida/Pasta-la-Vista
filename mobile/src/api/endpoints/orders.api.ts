@@ -6,7 +6,8 @@ interface ApiResponse<T> {
   data: T;
 }
 
-interface CreateOrderDto {
+/** Alinhado ao CreateOrderSchema da API (address_id + delivery_mode, etc.) */
+export interface CreateOrderDto {
   items: {
     product_id: string;
     quantity: number;
@@ -16,16 +17,12 @@ interface CreateOrderDto {
     }[];
     obs?: string;
   }[];
-  address: {
-    street: string;
-    number: string;
-    complement?: string;
-    city: string;
-    state: string;
-    zip: string;
-  };
-  notes?: string;
+  delivery_mode: 'DELIVERY' | 'PICKUP' | 'DINE_IN';
   payment_method: 'PIX' | 'CREDIT_CARD' | 'CASH';
+  notes?: string;
+  address_id?: string;
+  table_number?: string;
+  coupon_code?: string;
 }
 
 export const ordersApi = {
@@ -41,6 +38,11 @@ export const ordersApi = {
 
   async listOrders(): Promise<IOrder[]> {
     const response = await api.get<ApiResponse<IOrder[]>>('/api/v1/orders');
+    return response.data.data;
+  },
+
+  async addReview(id: string, rating: number, comment: string): Promise<IOrder> {
+    const response = await api.post<ApiResponse<IOrder>>(`/api/v1/orders/${id}/avaliacao`, { rating, comment });
     return response.data.data;
   },
 };

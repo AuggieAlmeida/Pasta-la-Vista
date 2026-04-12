@@ -7,9 +7,12 @@ import {
   TouchableOpacity,
   ScrollView,
   Pressable,
+  Image,
 } from 'react-native';
 import { IProduct, ICustomization } from '../types/menu';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { useCartStore } from '../stores/cart.store';
+import Toast from 'react-native-toast-message';
 
 interface CustomizationModalProps {
   visible: boolean;
@@ -29,10 +32,16 @@ export const CustomizationModal: React.FC<CustomizationModalProps> = ({
   const addItem = useCartStore((state) => state.addItem);
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState<ICustomization | null>(null);
+  const [selectedVariation, setSelectedVariation] = useState<ICustomization | null>(null);
   const [selectedIngredients, setSelectedIngredients] = useState<ICustomization[]>([]);
 
   const sizeCustomizations = useMemo(
     () => product?.customizations?.filter((c) => c.type === 'size') || [],
+    [product]
+  );
+  
+  const variationCustomizations = useMemo(
+    () => product?.customizations?.filter((c) => c.type === 'variation') || [],
     [product]
   );
 
@@ -47,11 +56,14 @@ export const CustomizationModal: React.FC<CustomizationModalProps> = ({
     if (selectedSize) {
       price += selectedSize.price_modifier;
     }
+    if (selectedVariation) {
+      price += selectedVariation.price_modifier;
+    }
     for (const ing of selectedIngredients) {
       price += ing.price_modifier;
     }
     return price * quantity;
-  }, [product, selectedSize, selectedIngredients, quantity]);
+  }, [product, selectedSize, selectedVariation, selectedIngredients, quantity]);
 
   const unitPrice = useMemo(() => {
     if (!product) return 0;
@@ -59,11 +71,14 @@ export const CustomizationModal: React.FC<CustomizationModalProps> = ({
     if (selectedSize) {
       price += selectedSize.price_modifier;
     }
+    if (selectedVariation) {
+      price += selectedVariation.price_modifier;
+    }
     for (const ing of selectedIngredients) {
       price += ing.price_modifier;
     }
     return price;
-  }, [product, selectedSize, selectedIngredients]);
+  }, [product, selectedSize, selectedVariation, selectedIngredients]);
 
   const handleToggleIngredient = useCallback((ingredient: ICustomization) => {
     setSelectedIngredients((prev) => {
@@ -86,6 +101,13 @@ export const CustomizationModal: React.FC<CustomizationModalProps> = ({
         price_modifier: selectedSize.price_modifier,
       });
     }
+    if (selectedVariation) {
+      customizations.push({
+        id: selectedVariation._id,
+        name: selectedVariation.name,
+        price_modifier: selectedVariation.price_modifier,
+      });
+    }
     for (const ing of selectedIngredients) {
       customizations.push({
         id: ing._id,
@@ -102,17 +124,25 @@ export const CustomizationModal: React.FC<CustomizationModalProps> = ({
       customizations,
       subtotal: calculatedPrice,
     });
+    
+    Toast.show({
+      type: 'success',
+      text1: 'Adicionado ao carrinho!',
+      text2: `${quantity}x ${product.name}`,
+    });
 
     // Reset state
     setQuantity(1);
     setSelectedSize(null);
+    setSelectedVariation(null);
     setSelectedIngredients([]);
     onClose();
-  }, [product, selectedSize, selectedIngredients, quantity, unitPrice, calculatedPrice, addItem, onClose]);
+  }, [product, selectedSize, selectedVariation, selectedIngredients, quantity, unitPrice, calculatedPrice, addItem, onClose]);
 
   const handleClose = useCallback(() => {
     setQuantity(1);
     setSelectedSize(null);
+    setSelectedVariation(null);
     setSelectedIngredients([]);
     onClose();
   }, [onClose]);
@@ -135,6 +165,27 @@ export const CustomizationModal: React.FC<CustomizationModalProps> = ({
             style={styles.content}
             showsVerticalScrollIndicator={false}
           >
+            <View style={styles.imageContainer}>
+              {product.image ? (
+                <Image source={{ uri: product.image }} style={styles.modalImage} resizeMode="cover" />
+              ) : (
+                <View style={styles.modalImagePlaceholder}>
+                  <FontAwesome5
+                    name={
+                      product.category === 'pizzas' ? 'pizza-slice'
+                      : product.category === 'bebidas' ? 'glass-martini-alt'
+                      : product.category === 'sobremesas' ? 'ice-cream'
+                      : product.category === 'massas' ? 'utensils'
+                      : product.category === 'saladas' ? 'leaf'
+                      : 'utensils'
+                    }
+                    size={32}
+                    color="#FF6B35"
+                  />
+                </View>
+              )}
+            </View>
+
             <Text style={styles.productName}>{product.name}</Text>
             <Text style={styles.productDescription}>{product.description}</Text>
             <Text style={styles.basePrice}>
@@ -164,6 +215,36 @@ export const CustomizationModal: React.FC<CustomizationModalProps> = ({
                     {size.price_modifier > 0 && (
                       <Text style={styles.optionPrice}>
                         +{formatPrice(size.price_modifier)}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+
+            {/* Variação Mutuamente Exclusiva (Radio) */}
+            {variationCustomizations.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Escolha uma opção</Text>
+                {variationCustomizations.map((variation) => (
+                  <TouchableOpacity
+                    key={variation._id}
+                    style={[
+                      styles.optionRow,
+                      selectedVariation?._id === variation._id && styles.optionSelected,
+                    ]}
+                    onPress={() => setSelectedVariation(variation)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.radio}>
+                      {selectedVariation?._id === variation._id && (
+                        <View style={styles.radioInner} />
+                      )}
+                    </View>
+                    <Text style={styles.optionName}>{variation.name}</Text>
+                    {variation.price_modifier > 0 && (
+                      <Text style={styles.optionPrice}>
+                        +{formatPrice(variation.price_modifier)}
                       </Text>
                     )}
                   </TouchableOpacity>
@@ -282,6 +363,29 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 20,
     paddingBottom: 16,
+  },
+  imageContainer: {
+    width: '100%',
+    height: 300,
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginBottom: 16,
+    backgroundColor: '#FFF0E6',
+  },
+  modalImage: {
+    width: '100%',
+    height: '100%',
+  },
+  modalImagePlaceholder: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFF0E6',
+  },
+  modalPlaceholderText: {
+    color: '#FF6B35',
+    fontSize: 18,
+    fontWeight: '700',
   },
   productName: {
     fontSize: 22,

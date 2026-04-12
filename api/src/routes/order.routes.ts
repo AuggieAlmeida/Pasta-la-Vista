@@ -26,4 +26,10 @@ orderRouter.get(
   (req, res, next) => orderController.getOrder(req, res, next)
 );
 
+orderRouter.post(
+  '/:id/avaliacao',
+  authMiddleware,
+  (req, res, next) => orderController.addReview(req, res, next)
+);
+
 export default orderRouter;

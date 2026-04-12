@@ -22,26 +22,79 @@ model User {
   email        String   @unique
   passwordHash String   @map("password_hash")
   role         Role     @default(CLIENT)
-  phone        String?
-  createdAt    DateTime @default(now()) @map("created_at")
+  phone            String?
+  stripeCustomerId String?  @map("stripe_customer_id")
+  createdAt        DateTime @default(now()) @map("created_at")
+  deletedAt        DateTime? @map("deleted_at")
 
-  orders       Order[]
+  orders           Order[]
+  addresses        UserAddress[]
+  cards            UserCard[]
+  favorites        UserFavorite[]
 
   @@map("users")
+}
+
+model UserAddress {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  street     String
+  number     String
+  complement String?
+  city       String
+  state      String
+  zip        String
+  isDefault  Boolean  @default(false) @map("is_default")
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_addresses")
+}
+
+model UserCard {
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  last4          String
+  brand          String
+  stripePaymentMethodId String @map("stripe_pm_id")
+  isDefault      Boolean  @default(false) @map("is_default")
+
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ordersAsSavedPayment Order[] @relation("OrderSavedCard")
+
+  @@map("user_cards")
+}
+
+model UserFavorite {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  productId String   @map("product_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("user_favorites")
 }
 
 model Order {
   id            String      @id @default(uuid())
   userId        String      @map("user_id")
-  total         Decimal     @db.Decimal(10, 2)
-  status        OrderStatus @default(PENDING)
-  paymentMethod String      @map("payment_method")
-  paidAt        DateTime?   @map("paid_at")
-  createdAt     DateTime    @default(now()) @map("created_at")
+  total         Decimal      @db.Decimal(10, 2)
+  status        OrderStatus  @default(PENDING)
+  paymentMethod String       @map("payment_method")
+  deliveryMode  DeliveryMode @default(DELIVERY) @map("delivery_mode")
+  tableNumber   String?      @map("table_number")
+  couponId      String?      @map("coupon_id")
+  savedCardId   String?      @map("saved_card_id")
+  paidAt        DateTime?    @map("paid_at")
+  createdAt     DateTime     @default(now()) @map("created_at")
 
   user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   items         OrderItem[]
   payment       Payment?
+  coupon        Coupon?     @relation(fields: [couponId], references: [id])
+  savedCard     UserCard?   @relation("OrderSavedCard", fields: [savedCardId], references: [id], onDelete: SetNull)
 
   @@map("orders")
 }
@@ -95,4 +148,30 @@ model Payment {
   order           Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@map("payments")
+}
+
+enum DeliveryMode {
+  PICKUP
+  DELIVERY
+  DINE_IN
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED
+}
+
+model Coupon {
+  id            String       @id @default(uuid())
+  code          String       @unique
+  discountType  DiscountType @map("discount_type")
+  discountValue Decimal      @db.Decimal(10, 2) @map("discount_value")
+  usageLimit    Int?         @map("usage_limit")
+  usedCount     Int          @default(0) @map("used_count")
+  active        Boolean      @default(true)
+  createdAt     DateTime     @default(now()) @map("created_at")
+
+  orders        Order[]
+
+  @@map("coupons")
 }

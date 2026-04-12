@@ -1,37 +1,22 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useAuthStore } from '../stores/auth.store';
+import { View, Text, StyleSheet, Platform } from 'react-native';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { useCartStore } from '../stores/cart.store';
 import { MenuScreen } from '../screens/client/MenuScreen';
 import { CartScreen } from '../screens/client/CartScreen';
 import { OrderHistoryScreen } from '../screens/client/OrderHistoryScreen';
 import { OrderConfirmationScreen } from '../screens/client/OrderConfirmationScreen';
+import { PaymentScreen } from '../screens/client/PaymentScreen';
 
 const Tab = createBottomTabNavigator();
 const MenuStack = createNativeStackNavigator();
 const CartStack = createNativeStackNavigator();
 const OrderStack = createNativeStackNavigator();
 
-const ProfileScreen: React.FC = () => {
-  const { clearAuth, user } = useAuthStore();
-
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Perfil</Text>
-      <Text style={styles.userInfo}>{user?.name}</Text>
-      <Text style={styles.userInfo}>{user?.email}</Text>
-
-      <TouchableOpacity
-        style={styles.logoutButton}
-        onPress={() => clearAuth()}
-      >
-        <Text style={styles.logoutText}>Sair</Text>
-      </TouchableOpacity>
-    </View>
-  );
-};
+import { ProfileScreen } from '../screens/client/ProfileScreen';
+import { FavoritesScreen } from '../screens/client/FavoritesScreen';
 
 const MenuStackNavigator: React.FC = () => (
   <MenuStack.Navigator screenOptions={{ headerShown: false }}>
@@ -46,22 +31,32 @@ const MenuStackNavigator: React.FC = () => (
 
 const CartStackNavigator: React.FC = () => (
   <CartStack.Navigator screenOptions={{ headerShown: false }}>
-    <CartStack.Screen name="CartHome" component={CartScreen} />
+    <CartStack.Screen name="Carrinho" component={CartScreen} />
     <CartStack.Screen
       name="OrderConfirmation"
       component={OrderConfirmationScreen}
       options={{ headerShown: true, title: 'Pedido' }}
+    />
+    <CartStack.Screen
+      name="Payment"
+      component={PaymentScreen}
+      options={{ headerShown: true, title: 'Pagamento' }}
     />
   </CartStack.Navigator>
 );
 
 const OrderStackNavigator: React.FC = () => (
   <OrderStack.Navigator screenOptions={{ headerShown: false }}>
-    <OrderStack.Screen name="OrderHistory" component={OrderHistoryScreen} />
+    <OrderStack.Screen name="Histórico" component={OrderHistoryScreen} />
     <OrderStack.Screen
       name="OrderConfirmation"
       component={OrderConfirmationScreen}
       options={{ headerShown: true, title: 'Pedido' }}
+    />
+    <OrderStack.Screen
+      name="Payment"
+      component={PaymentScreen}
+      options={{ headerShown: true, title: 'Pagamento' }}
     />
   </OrderStack.Navigator>
 );
@@ -89,9 +84,10 @@ export const ClientNavigator: React.FC = () => {
         tabBarInactiveTintColor: '#999',
         tabBarStyle: {
           borderTopWidth: 1,
-          borderTopColor: '#F0F0F0',
-          paddingBottom: 4,
-          paddingTop: 4,
+          borderTopColor: '#E5E7EB',
+          paddingBottom: Platform.OS === 'ios' ? 12 : 12,
+          paddingTop: 8,
+          height: Platform.OS === 'ios' ? 60 : 60,
         },
       }}
     >
@@ -100,8 +96,8 @@ export const ClientNavigator: React.FC = () => {
         component={MenuStackNavigator}
         options={{
           tabBarLabel: 'Cardapio',
-          tabBarIcon: ({ color }) => (
-            <Text style={{ fontSize: 20, color }}>M</Text>
+          tabBarIcon: ({ color, size }) => (
+            <FontAwesome5 name="utensils" size={size || 20} color={color} />
           ),
         }}
       />
@@ -110,9 +106,9 @@ export const ClientNavigator: React.FC = () => {
         component={CartStackNavigator}
         options={{
           tabBarLabel: 'Carrinho',
-          tabBarIcon: ({ color }) => (
+          tabBarIcon: ({ color, size }) => (
             <View>
-              <Text style={{ fontSize: 20, color }}>C</Text>
+              <FontAwesome5 name="shopping-cart" size={size || 20} color={color} />
               <CartBadge />
             </View>
           ),
@@ -123,8 +119,20 @@ export const ClientNavigator: React.FC = () => {
         component={OrderStackNavigator}
         options={{
           tabBarLabel: 'Pedidos',
-          tabBarIcon: ({ color }) => (
-            <Text style={{ fontSize: 20, color }}>P</Text>
+          tabBarIcon: ({ color, size }) => (
+            <FontAwesome5 name="list-alt" size={size || 20} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Favorites"
+        component={FavoritesScreen}
+        options={{
+          headerShown: false,
+          title: 'Favoritos',
+          tabBarLabel: 'Favoritos',
+          tabBarIcon: ({ color, size }) => (
+            <FontAwesome5 name="heart" size={size || 20} color={color} />
           ),
         }}
       />
@@ -132,11 +140,11 @@ export const ClientNavigator: React.FC = () => {
         name="Profile"
         component={ProfileScreen}
         options={{
-          headerShown: true,
+          headerShown: false,
           title: 'Perfil',
           tabBarLabel: 'Perfil',
-          tabBarIcon: ({ color }) => (
-            <Text style={{ fontSize: 20, color }}>U</Text>
+          tabBarIcon: ({ color, size }) => (
+            <FontAwesome5 name="user" size={size || 20} color={color} />
           ),
         }}
       />

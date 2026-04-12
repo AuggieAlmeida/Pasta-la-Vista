@@ -10,7 +10,10 @@ export interface IOrderDocument extends Document {
   discount: number;
   total: number;
   status: string;
-  address: {
+  delivery_mode: string;
+  table_number?: string;
+  coupon_code?: string;
+  address?: {
     street: string;
     number: string;
     complement?: string;
@@ -22,6 +25,13 @@ export interface IOrderDocument extends Document {
   payment_method: string;
   created_at: Date;
   updated_at: Date;
+  review?: IReviewDoc;
+}
+
+export interface IReviewDoc {
+  rating: number;
+  comment: string;
+  created_at: Date;
 }
 
 export interface IOrderItemDoc {
@@ -49,6 +59,11 @@ const OrderItemSchema = new Schema({
   }],
   subtotal: { type: Number, required: true, min: 0 },
 }, { _id: false });
+
+const ReviewSchema = new Schema({
+  rating: { type: Number, required: true, min: 1, max: 5 },
+  comment: { type: String, default: '' },
+}, { _id: false, timestamps: { createdAt: 'created_at', updatedAt: false } });
 
 const OrderLogSchema = new Schema<IOrderDocument>(
   {
@@ -92,13 +107,27 @@ const OrderLogSchema = new Schema<IOrderDocument>(
       enum: ['PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'DELIVERED', 'CANCELLED'],
       default: 'PENDING',
     },
+    delivery_mode: {
+      type: String,
+      required: true,
+      enum: ['DELIVERY', 'PICKUP', 'DINE_IN'],
+      default: 'DELIVERY',
+    },
+    table_number: {
+      type: String,
+      required: false,
+    },
+    coupon_code: {
+      type: String,
+      required: false,
+    },
     address: {
-      street: { type: String, required: true },
-      number: { type: String, required: true },
-      complement: { type: String },
-      city: { type: String, required: true },
-      state: { type: String, required: true },
-      zip: { type: String, required: true },
+      street: { type: String, required: false },
+      number: { type: String, required: false },
+      complement: { type: String, required: false },
+      city: { type: String, required: false },
+      state: { type: String, required: false },
+      zip: { type: String, required: false },
     },
     notes: {
       type: String,
@@ -108,6 +137,10 @@ const OrderLogSchema = new Schema<IOrderDocument>(
       type: String,
       required: true,
       enum: ['PIX', 'CREDIT_CARD', 'CASH'],
+    },
+    review: {
+      type: ReviewSchema,
+      required: false,
     },
   },
   {

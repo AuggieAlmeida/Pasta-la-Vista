@@ -2,7 +2,9 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "ESNext",
-    "lib": ["ES2020"],
+    "lib": [
+      "ES2020"
+    ],
     "outDir": "./dist",
     "rootDir": ".",
     "strict": true,
@@ -12,7 +14,10 @@
     "resolveJsonModule": true,
     "declaration": true,
     "declarationMap": true,
-    "types": ["node", "jest"],
+    "types": [
+      "node",
+      "jest"
+    ],
     "sourceMap": true,
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
@@ -29,6 +34,14 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "tests"],
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "src",
+    "tests",
+    "prisma/seed-products.ts",
+    "prisma/create-admin.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }

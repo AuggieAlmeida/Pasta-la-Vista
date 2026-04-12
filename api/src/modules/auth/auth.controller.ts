@@ -86,4 +86,27 @@ export const authController = {
       next(error);
     }
   },
+
+  async deleteAccount(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = req.user?.id;
+
+      if (!userId) {
+        res.status(401).json({
+          status: 'error',
+          message: 'Usuário não autenticado',
+        });
+        return;
+      }
+
+      await authService.deleteAccount(userId);
+
+      res.status(200).json({
+        status: 'success',
+        message: 'Conta deletada e dados anonimizados de acordo com a LGPD.',
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
 };

@@ -25,8 +25,7 @@ export interface IProduct extends Document {
 const CustomizationSchema = new Schema<ICustomization>({
   type: {
     type: String,
-    required: [true, 'Tipo de customizacao e obrigatorio'],
-    enum: ['size', 'ingredient'],
+    enum: ['size', 'ingredient', 'variation'],
   },
   name: {
     type: String,
@@ -71,7 +70,7 @@ const ProductSchema = new Schema<IProduct>(
       type: String,
       required: [true, 'Categoria e obrigatoria'],
       index: true,
-      enum: ['pizzas', 'bebidas', 'sobremesas', 'massas', 'aperitivos'],
+      enum: ['pizzas', 'bebidas', 'sobremesas', 'massas', 'entradas', 'saladas'],
     },
     active: {
       type: Boolean,

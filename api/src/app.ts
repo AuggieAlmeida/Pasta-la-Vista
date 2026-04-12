@@ -4,7 +4,14 @@ import rateLimit from 'express-rate-limit';
 import authRouter from './routes/auth.routes';
 import menuRouter from './routes/menu.routes';
 import orderRouter from './routes/order.routes';
+import paymentRouter from './routes/payment.routes';
+import stockRouter from './routes/stock.routes';
+import adminRouter from './routes/admin.routes';
+import profileRouter from './routes/profile.routes';
+import couponRouter from './routes/coupon.routes';
+import favoriteRouter from './routes/favorite.routes';
 import docsRouter from './docs/docs.routes';
+import { paymentController } from './modules/payment/payment.controller';
 import { AppError } from './utils/errors';
 
 const app: Express = express();
@@ -17,7 +24,16 @@ app.use(cors({
   credentials: true,
 }));
 
-// Middleware de parsing JSON
+// ──── Stripe Webhook (ANTES do express.json()) ─────────
+// Stripe precisa do body cru (Buffer) para validar a assinatura.
+// Por isso essa rota é registrada antes de qualquer JSON parser.
+app.post(
+  '/api/v1/pagamento/webhook',
+  express.raw({ type: 'application/json' }),
+  (req, res, next) => paymentController.handleWebhook(req, res, next)
+);
+
+// ──── JSON & URL-Encoded Parsing ───────────────────────
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -48,10 +64,16 @@ app.get('/health', (_req: Request, res: Response) => {
 // Documentation (Swagger, ReDoc, API Reference)
 app.use('/docs', docsRouter);
 
-// Routes
+// ──── Routes ───────────────────────────────────────────
 app.use('/api/v1/auth', authLimiter, authRouter);
 app.use('/api/v1/menu', menuRouter);
 app.use('/api/v1/orders', orderRouter);
+app.use('/api/v1/pagamento', paymentRouter);
+app.use('/api/v1/admin/estoque', stockRouter);
+app.use('/api/v1/admin', adminRouter);
+app.use('/api/v1/profile', profileRouter);
+app.use('/api/v1/cupons', couponRouter);
+app.use('/api/v1/favoritos', favoriteRouter);
 
 // 404 handler
 app.use((_req: Request, res: Response) => {

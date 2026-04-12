@@ -35,4 +35,11 @@ authRouter.post(
   (req, res, next) => authController.logout(req, res, next)
 );
 
+// Rota protegida: Deletar Conta
+authRouter.delete(
+  '/conta',
+  authMiddleware,
+  (req, res, next) => authController.deleteAccount(req, res, next)
+);
+
 export default authRouter;

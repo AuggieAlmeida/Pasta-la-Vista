@@ -8,10 +8,13 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
+import Toast from 'react-native-toast-message';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { ordersApi } from '../../api/endpoints/orders.api';
 import { IOrder } from '../../types/menu';
+import { ReviewModal } from '../../components/ReviewModal';
 
 const formatPrice = (price: number): string => {
   return `R$ ${price.toFixed(2).replace('.', ',')}`;
@@ -39,6 +42,8 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }
 
 export const OrderHistoryScreen: React.FC = () => {
   const navigation = useNavigation<any>();
+  const queryClient = useQueryClient();
+  const [selectedOrderIdForReview, setSelectedOrderIdForReview] = React.useState<string | null>(null);
 
   const {
     data: orders,
@@ -59,6 +64,33 @@ export const OrderHistoryScreen: React.FC = () => {
     },
     [navigation]
   );
+
+  const reviewMutation = useMutation({
+    mutationFn: ({ orderId, rating, comment }: { orderId: string; rating: number; comment: string }) =>
+      ordersApi.addReview(orderId, rating, comment),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      Toast.show({
+        type: 'success',
+        text1: 'Avaliação enviada!',
+        text2: 'Muito obrigado pelo seu feedback.',
+      });
+    },
+    onError: () => {
+      Toast.show({
+        type: 'error',
+        text1: 'Erro ao enviar avaliação',
+        text2: 'Por favor, tente novamente.',
+      });
+    },
+  });
+
+  const handleReviewSubmit = async (rating: number, comment: string) => {
+    if (selectedOrderIdForReview) {
+      await reviewMutation.mutateAsync({ orderId: selectedOrderIdForReview, rating, comment });
+      setSelectedOrderIdForReview(null);
+    }
+  };
 
   const renderOrder = useCallback(
     ({ item }: { item: IOrder }) => {
@@ -84,6 +116,24 @@ export const OrderHistoryScreen: React.FC = () => {
           </Text>
           <View style={styles.orderFooter}>
             <Text style={styles.orderTotal}>{formatPrice(item.total)}</Text>
+            
+            {item.status === 'DELIVERED' && !item.review && (
+              <TouchableOpacity
+                style={styles.reviewButton}
+                onPress={() => setSelectedOrderIdForReview(item.id)}
+              >
+                <FontAwesome5 name="star" solid size={12} color="#FFFFFF" style={{ marginRight: 4 }} />
+                <Text style={styles.reviewButtonText}>Avaliar</Text>
+              </TouchableOpacity>
+            )}
+
+            {item.status === 'DELIVERED' && item.review && (
+              <View style={styles.reviewedBadge}>
+                <FontAwesome5 name="star" solid size={12} color="#F59E0B" style={{ marginRight: 4 }} />
+                <Text style={styles.reviewedText}>{item.review.rating}</Text>
+              </View>
+            )}
+            
             <Text style={styles.viewDetails}>Ver detalhes</Text>
           </View>
         </TouchableOpacity>
@@ -94,26 +144,39 @@ export const OrderHistoryScreen: React.FC = () => {
 
   if (isLoading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#FF6B35" />
-        <Text style={styles.loadingText}>Carregando pedidos...</Text>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Meus Pedidos</Text>
+        </View>
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color="#FF6B35" />
+          <Text style={styles.loadingText}>Carregando pedidos...</Text>
+        </View>
       </View>
     );
   }
 
   if (isError) {
     return (
-      <View style={styles.centered}>
-        <Text style={styles.errorText}>Erro ao carregar pedidos</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
-          <Text style={styles.retryText}>Tentar novamente</Text>
-        </TouchableOpacity>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Meus Pedidos</Text>
+        </View>
+        <View style={styles.centered}>
+          <Text style={styles.errorText}>Erro ao carregar pedidos</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
+            <Text style={styles.retryText}>Tentar novamente</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Meus Pedidos</Text>
+      </View>
       <FlatList
         data={orders}
         renderItem={renderOrder}
@@ -137,6 +200,15 @@ export const OrderHistoryScreen: React.FC = () => {
           </View>
         }
       />
+      
+      {selectedOrderIdForReview && (
+        <ReviewModal
+          visible={!!selectedOrderIdForReview}
+          orderId={selectedOrderIdForReview}
+          onClose={() => setSelectedOrderIdForReview(null)}
+          onSubmit={handleReviewSubmit}
+        />
+      )}
     </View>
   );
 };
@@ -146,6 +218,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8F8F8',
   },
+  header: { backgroundColor: '#FF6B35', padding: 20, paddingBottom: 10 },
+  title: { fontSize: 24, fontWeight: '700', color: '#FFFFFF', marginTop: 10 },
   listContent: {
     padding: 16,
     paddingBottom: 20,
@@ -244,5 +318,31 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#3B82F6',
     fontWeight: '600',
+  },
+  reviewButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#10B981',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  reviewButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  reviewedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  reviewedText: {
+    color: '#F59E0B',
+    fontSize: 12,
+    fontWeight: '700',
   },
 });

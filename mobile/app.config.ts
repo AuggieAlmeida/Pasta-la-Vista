@@ -7,7 +7,15 @@ const expoConfig: ExpoConfig = {
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'light',
-  plugins: [],
+  plugins: [
+    [
+      '@stripe/stripe-react-native',
+      {
+        merchantIdentifier: 'com.pastalavista.mobile',
+        enableApplePay: true,
+      },
+    ],
+  ],
   extra: {
     apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:3333',
     stripePk: process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || '',

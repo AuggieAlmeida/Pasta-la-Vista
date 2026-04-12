@@ -20,6 +20,9 @@ jest.mock('../src/config/database', () => ({
     user: {
       findUnique: jest.fn(),
     },
+    userAddress: {
+      findFirst: jest.fn(),
+    },
   },
   redis: {
     get: jest.fn(),
@@ -58,13 +61,8 @@ const mockCreateOrderDto = {
       ],
     },
   ],
-  address: {
-    street: 'Rua das Flores',
-    number: '42',
-    city: 'Sao Paulo',
-    state: 'SP',
-    zip: '01234-567',
-  },
+  delivery_mode: 'DELIVERY' as const,
+  address_id: 'addr-uuid-1',
   notes: 'Sem cebola',
   payment_method: 'PIX' as const,
 };
@@ -86,6 +84,16 @@ describe('OrderService', () => {
         quantity: 50,
         minQuantity: 5,
         status: 'AVAILABLE',
+      });
+
+      (prisma.userAddress.findFirst as jest.Mock).mockResolvedValue({
+        id: 'addr-uuid-1',
+        userId,
+        street: 'Rua das Flores',
+        number: '42',
+        city: 'Sao Paulo',
+        state: 'SP',
+        zip: '01234-567',
       });
 
       const expectedTotal = (42.90 + 10) * 2 + 5; // (price + customize) * qty + delivery
@@ -130,6 +138,16 @@ describe('OrderService', () => {
         status: 'LOW',
       });
 
+      (prisma.userAddress.findFirst as jest.Mock).mockResolvedValue({
+        id: 'addr-uuid-1',
+        userId,
+        street: 'Rua das Flores',
+        number: '42',
+        city: 'Sao Paulo',
+        state: 'SP',
+        zip: '01234-567',
+      });
+
       await expect(
         orderService.createOrder(userId, mockCreateOrderDto)
       ).rejects.toThrow(/Estoque insuficiente/);
@@ -143,6 +161,16 @@ describe('OrderService', () => {
         quantity: 50,
         minQuantity: 5,
         status: 'AVAILABLE',
+      });
+
+      (prisma.userAddress.findFirst as jest.Mock).mockResolvedValue({
+        id: 'addr-uuid-1',
+        userId,
+        street: 'Rua das Flores',
+        number: '42',
+        city: 'Sao Paulo',
+        state: 'SP',
+        zip: '01234-567',
       });
 
       const mockOrder = {
@@ -172,6 +200,16 @@ describe('OrderService', () => {
     it('deve retornar 422 se product_id invalido', async () => {
       (productService.getProductsByIds as jest.Mock).mockResolvedValue([]);
 
+      (prisma.userAddress.findFirst as jest.Mock).mockResolvedValue({
+        id: 'addr-uuid-1',
+        userId,
+        street: 'Rua das Flores',
+        number: '42',
+        city: 'Sao Paulo',
+        state: 'SP',
+        zip: '01234-567',
+      });
+
       await expect(
         orderService.createOrder(userId, mockCreateOrderDto)
       ).rejects.toThrow(/nao encontrado ou indisponivel/);
@@ -186,6 +224,8 @@ describe('OrderService', () => {
         status: 'PENDING',
         total: 100,
         paymentMethod: 'PIX',
+        deliveryMode: 'DELIVERY',
+        tableNumber: null,
         createdAt: new Date(),
         items: [],
       });
@@ -202,6 +242,8 @@ describe('OrderService', () => {
         status: 'PENDING',
         total: 100,
         paymentMethod: 'PIX',
+        deliveryMode: 'DELIVERY',
+        tableNumber: null,
         createdAt: new Date(),
         items: [
           {
@@ -234,6 +276,7 @@ describe('OrderService', () => {
         discount: 0,
         total: 100,
         status: 'PENDING',
+        delivery_mode: 'DELIVERY',
         address: {
           street: 'Rua A',
           number: '1',

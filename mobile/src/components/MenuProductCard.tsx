@@ -5,8 +5,13 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
+  Platform,
 } from 'react-native';
 import { IProduct } from '../types/menu';
+import { FontAwesome5 } from '@expo/vector-icons';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { favoritesApi } from '../api/endpoints/favorites.api';
+import Toast from 'react-native-toast-message';
 
 interface MenuProductCardProps {
   product: IProduct;
@@ -21,81 +26,129 @@ export const MenuProductCard: React.FC<MenuProductCardProps> = ({
   product,
   onAdd,
 }) => {
+  const queryClient = useQueryClient();
+  const { data: favorites = [] } = useQuery({ queryKey: ['user-favorites'], queryFn: favoritesApi.getFavorites });
+  const isFavorite = favorites.includes(product._id);
+
+  const toggleFavorite = async () => {
+    try {
+      if (isFavorite) {
+        await favoritesApi.removeFavorite(product._id);
+      } else {
+        await favoritesApi.addFavorite(product._id);
+      }
+      queryClient.invalidateQueries({ queryKey: ['user-favorites'] });
+    } catch {
+      Toast.show({ type: 'error', text1: 'Falha ao favoritar' });
+    }
+  };
+
   return (
-    <View style={styles.card}>
-      <View style={styles.imageContainer}>
-        {product.image ? (
-          <Image
-            source={{ uri: product.image }}
-            style={styles.image}
-            resizeMode="cover"
-          />
-        ) : (
-          <View style={styles.imagePlaceholder}>
-            <Text style={styles.placeholderText}>
-              {product.category === 'pizzas'
-                ? 'Pizza'
-                : product.category === 'bebidas'
-                ? 'Bebida'
-                : product.category === 'sobremesas'
-                ? 'Sobremesa'
-                : product.category === 'massas'
-                ? 'Massa'
-                : 'Prato'}
+    <View style={styles.cardOuter}>
+      <View style={styles.card}>
+        <View style={styles.imageContainer}>
+          {product.image ? (
+            <Image
+              source={{ uri: product.image }}
+              style={styles.image}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={styles.imagePlaceholder}>
+              <Text style={styles.placeholderText}>
+                {product.category === 'pizzas'
+                  ? 'Pizza'
+                  : product.category === 'bebidas'
+                    ? 'Bebida'
+                    : product.category === 'sobremesas'
+                      ? 'Sobremesa'
+                      : product.category === 'massas'
+                        ? 'Massa'
+                        : product.category === 'saladas'
+                          ? 'Salada'
+                          : product.category === 'entradas'
+                            ? 'Entradas'
+                            : 'Prato'}
+              </Text>
+            </View>
+          )}
+        </View>
+        <View style={styles.info}>
+          <View style={styles.headerInfo}>
+            <Text style={styles.name} numberOfLines={1}>
+              {product.name}
             </Text>
+            <TouchableOpacity onPress={toggleFavorite} style={styles.favoriteBtn}>
+              <FontAwesome5 name="heart" solid={isFavorite} size={18} color={isFavorite ? '#FF4444' : '#CCC'} />
+            </TouchableOpacity>
           </View>
-        )}
-      </View>
-      <View style={styles.info}>
-        <Text style={styles.name} numberOfLines={1}>
-          {product.name}
-        </Text>
-        <Text style={styles.description} numberOfLines={2}>
-          {product.description}
-        </Text>
-        <View style={styles.footer}>
-          <Text style={styles.price}>{formatPrice(product.price)}</Text>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => onAdd(product)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.addButtonText}>Adicionar</Text>
-          </TouchableOpacity>
+          <Text style={styles.description} numberOfLines={2}>
+            {product.description}
+          </Text>
+          <View style={styles.footer}>
+            <Text style={styles.price}>{formatPrice(product.price)}</Text>
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => onAdd(product)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.addButtonText}>Adicionar</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
+      <View style={styles.bottomOrangeAccent} />
     </View>
   );
 };
 
+const ORANGE = '#FF6B35';
+
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+  cardOuter: {
     marginHorizontal: 16,
-    marginBottom: 12,
-    flexDirection: 'row',
+    marginBottom: 14,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
     overflow: 'hidden',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    ...Platform.select({
+      ios: {
+        shadowColor: ORANGE,
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.28,
+        shadowRadius: 10,
+      },
+      android: {
+        elevation: 6,
+      },
+      default: {},
+    }),
+  },
+  card: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
   },
   imageContainer: {
     width: 110,
-    height: 110,
+    minHeight: 110,
+    alignSelf: 'stretch',
   },
   image: {
+    ...StyleSheet.absoluteFillObject,
     width: '100%',
     height: '100%',
   },
   imagePlaceholder: {
-    width: '100%',
-    height: '100%',
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: '#FFF0E6',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  bottomOrangeAccent: {
+    height: 4,
+    width: '100%',
+    backgroundColor: ORANGE,
+    opacity: 0.5,
   },
   placeholderText: {
     fontSize: 12,
@@ -107,11 +160,20 @@ const styles = StyleSheet.create({
     padding: 12,
     justifyContent: 'space-between',
   },
+  headerInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  favoriteBtn: {
+    padding: 4,
+  },
   name: {
     fontSize: 16,
     fontWeight: '700',
     color: '#1a1a1a',
-    marginBottom: 4,
+    flex: 1,
   },
   description: {
     fontSize: 12,

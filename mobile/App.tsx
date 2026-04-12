@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react';
 import type { ReactElement } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
-import { View, LogBox } from 'react-native';
+import { View, LogBox, Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import Constants from 'expo-constants';
+
+import { StripeWrapper } from './src/components/StripeWrapper';
+import Toast from 'react-native-toast-message';
 
 const queryClient = new QueryClient();
 
@@ -48,10 +52,13 @@ function AppContent() {
 
 export default function App(): ReactElement {
   return (
-    <QueryClientProvider client={queryClient}>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <AppContent />
-      </GestureHandlerRootView>
-    </QueryClientProvider>
+    <StripeWrapper>
+      <QueryClientProvider client={queryClient}>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <AppContent />
+        </GestureHandlerRootView>
+        <Toast />
+      </QueryClientProvider>
+    </StripeWrapper>
   );
 }

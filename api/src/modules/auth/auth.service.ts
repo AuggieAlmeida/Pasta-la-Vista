@@ -2,7 +2,8 @@ import bcrypt from 'bcrypt';
 import { prisma, redis } from '../../config/database';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../../utils/jwt';
 import { RegisterInput, LoginInput } from './auth.schema';
-import { ValidationError, UnauthorizedError } from '../../utils/errors';
+import { ValidationError, UnauthorizedError, NotFoundError } from '../../utils/errors';
+import { OrderLog } from '../orders/order.model';
 
 const SALT_ROUNDS = 10;
 const REFRESH_TOKEN_TTL = 7 * 24 * 60 * 60; // 7 dias em segundos
@@ -162,5 +163,45 @@ export const authService = {
       throw new Error('Redis não inicializado');
     }
     await redis.del(`refresh_token:${userId}`);
+  },
+
+  async deleteAccount(userId: string): Promise<void> {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundError('Usuário não encontrado');
+
+    const anonymizedEmail = `anonymized_${Date.now()}@deleted.com`;
+
+    // 1. Apagar Informações Pessoais diretas ligadas do Prisma
+    await prisma.userAddress.deleteMany({ where: { userId } });
+    await prisma.userCard.deleteMany({ where: { userId } });
+
+    // 2. Soft-delete the user
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        name: 'Usuário Anonimizado',
+        email: anonymizedEmail,
+        phone: null,
+        deletedAt: new Date(),
+        stripeCustomerId: null
+      }
+    });
+
+    // 3. Anonimizar Logs no MongoDB para proteger dados da LGPD sem perder finança
+    try {
+      await OrderLog.updateMany(
+        { user_id: userId },
+        { 
+          $unset: { address: 1, notes: 1 },
+        }
+      );
+    } catch(e) {
+      console.error('Erro ao limpar historico do MongoDB', e);
+    }
+
+    // 4. Logout do Redis
+    if (redis) {
+      await redis.del(`refresh_token:${userId}`);
+    }
   },
 };

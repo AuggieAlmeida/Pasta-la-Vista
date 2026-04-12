@@ -10,17 +10,20 @@ import {
   RefreshControl,
   ScrollView,
 } from 'react-native';
+import { FontAwesome6 } from '@expo/vector-icons';
 import { useMenu, useMenuByCategory, useSearchMenu } from '../../hooks/useMenu';
 import { MenuProductCard } from '../../components/MenuProductCard';
 import { CustomizationModal } from '../../components/CustomizationModal';
 import { IProduct } from '../../types/menu';
 
-const CATEGORIES = ['Todos', 'Pizzas', 'Bebidas', 'Sobremesas', 'Massas'];
+const CATEGORIES = ['Todos', 'Pizzas', 'Massas', 'Entradas', 'Saladas', 'Bebidas', 'Sobremesas'];
 const CATEGORY_MAP: Record<string, string> = {
   Pizzas: 'pizzas',
+  Massas: 'massas',
+  Entradas: 'entradas',
+  Saladas: 'saladas',
   Bebidas: 'bebidas',
   Sobremesas: 'sobremesas',
-  Massas: 'massas',
 };
 
 export const MenuScreen: React.FC = () => {
@@ -113,10 +116,15 @@ export const MenuScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+      {/* Header — mesmo ícone bowl-food da splash e login/cadastro */}
       <View style={styles.header}>
-        <Text style={styles.logo}>Pasta la Vista</Text>
-        <Text style={styles.subtitle}>O melhor da cozinha italiana</Text>
+        <View style={styles.headerBrand}>
+          <FontAwesome6 name="bowl-food" size={44} color="#FFFFFF" style={styles.brandIcon} />
+          <View style={styles.headerTextBlock}>
+            <Text style={styles.logo}>Pasta la vista</Text>
+            <Text style={styles.subtitle}>O melhor da cozinha italiana</Text>
+          </View>
+        </View>
       </View>
 
       {/* Search Bar */}
@@ -226,9 +234,20 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#FF6B35',
-    paddingTop: 16,
+    paddingTop: 20,
     paddingBottom: 20,
     paddingHorizontal: 20,
+  },
+  headerBrand: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  brandIcon: {
+    marginRight: 14,
+  },
+  headerTextBlock: {
+    flex: 1,
   },
   logo: {
     fontSize: 28,
