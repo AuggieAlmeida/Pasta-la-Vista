@@ -7,6 +7,7 @@ node_modules/
 .env
 .env.local
 .env.*.local
+api/.env.docker
 
 # Testing
 coverage/
@@ -43,7 +44,7 @@ lerna-debug.log*
 *.db
 
 # Prisma
-prisma/migrations/
+# prisma/migrations/ — Tracked! Required for prisma migrate deploy on Render
 
 # Mobile specific
 *.apk

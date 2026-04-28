@@ -1,0 +1,51 @@
+# render.yaml — Blueprint para deploy da API no Render
+# Docs: https://docs.render.com/blueprint-spec
+
+services:
+  - type: web
+    name: pasta-la-vista-api
+    runtime: docker
+    dockerfilePath: ./api/Dockerfile
+    dockerContext: ./api
+    region: oregon
+    plan: free
+    branch: main
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # PORT é injetado automaticamente pelo Render
+      - key: DATABASE_URL
+        sync: false # Preencher no dashboard do Render
+      - key: DIRECT_URL
+        sync: false
+      - key: MONGODB_URI
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: ACCESS_TOKEN_EXPIRES
+        value: "15m"
+      - key: REFRESH_TOKEN_EXPIRES
+        value: "7d"
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET_NAME
+        sync: false
+      - key: R2_PUBLIC_URL
+        sync: false
+      - key: CORS_ORIGIN
+        value: "*"
