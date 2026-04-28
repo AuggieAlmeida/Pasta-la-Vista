@@ -117,7 +117,7 @@ export const orderService = {
               itemUnitPrice += Number(productCustomization.price_modifier) || 0;
               customizationDetails.push({
                 customization_id: cust.customization_id,
-                name: productCustomization.name,
+                name: productCustomization.name || '',
                 price_modifier: Number(productCustomization.price_modifier) || 0,
               });
             }

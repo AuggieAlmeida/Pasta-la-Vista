@@ -100,7 +100,7 @@ export const productService = {
         .limit(20)
         .lean<Array<IProduct & { score?: number }>>();
 
-      return raw.map(({ score: _score, ...doc }) => doc);
+      return raw.map(({ score: _score, ...doc }) => doc) as IProduct[];
     } catch (error) {
       throw error;
     }

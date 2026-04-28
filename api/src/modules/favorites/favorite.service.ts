@@ -1,5 +1,5 @@
 import { prisma } from '../../config/database';
-import { NotFoundError } from '../../utils/errors';
+
 
 export const favoriteService = {
   async addFavorite(userId: string, productId: string) {

@@ -1,5 +1,5 @@
 import { prisma } from '../../config/database';
-import { NotFoundError, ValidationError } from '../../utils/errors';
+import { NotFoundError } from '../../utils/errors';
 
 export const profileService = {
   // ─── Endereços ──────────────────────────────────────────
