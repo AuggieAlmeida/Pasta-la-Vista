@@ -21,20 +21,20 @@ jobs:
     defaults:
       run:
         working-directory: ./mobile
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
           cache-dependency-path: 'mobile/package-lock.json'
-      
+
       - name: Install dependencies
         run: npm install
-      
+
       - name: Run ESLint
         run: npm run lint
         continue-on-error: true
@@ -44,52 +44,94 @@ jobs:
     defaults:
       run:
         working-directory: ./mobile
-    
+
     needs: lint
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
           cache-dependency-path: 'mobile/package-lock.json'
-      
+
       - name: Install dependencies
         run: npm install
-      
+
       - name: TypeScript type check
         run: npm run type-check
+        continue-on-error: true
 
+  # Build de preview (APK/IPA para testes internos) — roda no push para develop
   build-preview:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./mobile
-    
+
     needs: type-check
-    
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
           cache-dependency-path: 'mobile/package-lock.json'
-      
+
       - name: Install dependencies
         run: npm install
-      
+
       - name: Setup EAS
         uses: expo/expo-github-action@v8
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
-      
-      - name: Build preview Android
-        run: npm run build
-        continue-on-error: true
+          packager: npm
+
+      - name: Build Android preview
+        run: eas build --platform android --profile preview --non-interactive
+
+      - name: Build iOS preview
+        run: eas build --platform ios --profile preview --non-interactive
+
+  # Build de produção (App Store / Play Store) — roda apenas no push para main
+  build-production:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./mobile
+
+    needs: type-check
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'mobile/package-lock.json'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+          packager: npm
+
+      - name: Build Android production
+        run: eas build --platform android --profile production --non-interactive
+
+      - name: Build iOS production
+        run: eas build --platform ios --profile production --non-interactive

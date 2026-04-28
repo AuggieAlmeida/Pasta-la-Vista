@@ -122,11 +122,7 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Deploy to Railway
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      - name: Deploy to Render
         run: |
-          npm install -g @railway/cli
-          railway up --detach
+          curl -s --fail-with-body \
+            -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
