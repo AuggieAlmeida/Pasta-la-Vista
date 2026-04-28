@@ -10,6 +10,8 @@ export const CreateOrderSchema = z.object({
       customizations: z.array(
         z.object({
           customization_id: z.string().min(1, 'ID da customizacao e obrigatorio'),
+          /** Nome enviado pelo app; usado como fallback se o ID não bater com o MongoDB. */
+          name: z.string().max(200).optional(),
           price_modifier: z.number().min(0).default(0),
         })
       ).optional().default([]),

@@ -92,7 +92,14 @@ const ProductSchema = new Schema<IProduct>(
   }
 );
 
-ProductSchema.index({ name: 'text', description: 'text' });
+ProductSchema.index(
+  { name: 'text', description: 'text', category: 'text' },
+  {
+    weights: { name: 10, category: 5, description: 1 },
+    default_language: 'portuguese',
+    name: 'product_text_index',
+  }
+);
 ProductSchema.index({ category: 1, active: 1 });
 
 export const Product = mongoose.model<IProduct>('products', ProductSchema);

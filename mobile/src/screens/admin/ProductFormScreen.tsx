@@ -9,6 +9,7 @@ import {
   Switch,
   Image,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { useRoute, useNavigation } from '@react-navigation/native';
@@ -71,8 +72,32 @@ function rowsFromCustomizations(
 }
 
 function parseModifier(raw: string): number {
-  const n = parseFloat(raw.replace(',', '.').trim());
+  const n = parseFloat(raw.replace(/\./g, '').replace(',', '.').trim());
   return Number.isFinite(n) && n >= 0 ? n : 0;
+}
+
+/** Máscara pt-BR: só dígitos e uma vírgula, até 2 decimais (ex.: 29,90). */
+function maskPriceInput(text: string): string {
+  let t = text.replace(/[^\d,]/g, '');
+  const c = t.indexOf(',');
+  if (c === -1) return t;
+  const intPart = t.slice(0, c);
+  const decPart = t.slice(c + 1).replace(/,/g, '').slice(0, 2);
+  return `${intPart},${decPart}`;
+}
+
+/** Converte texto mascarado para número (decimal interno com ponto). */
+function parsePriceFromMasked(display: string): number | null {
+  const normalized = display.trim().replace(/\./g, '').replace(',', '.');
+  if (normalized === '' || normalized === '.') return null;
+  const n = parseFloat(normalized);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return Math.round(n * 100) / 100;
+}
+
+function formatPriceForDisplay(n: number | undefined): string {
+  if (n == null || !Number.isFinite(n)) return '';
+  return n.toFixed(2).replace('.', ',');
 }
 
 function buildPayloadRows(rows: CustomRow[], type: CustomizationKind) {
@@ -158,7 +183,7 @@ const CustomizationSection: React.FC<CustomizationSectionProps> = ({
                 <TextInput
                   style={[styles.input, styles.modifierInput]}
                   value={row.priceModifier}
-                  onChangeText={(t) => patchRow(row.key, { priceModifier: t })}
+                  onChangeText={(t) => patchRow(row.key, { priceModifier: maskPriceInput(t) })}
                   keyboardType="decimal-pad"
                   placeholder="0"
                   editable={!disabled}
@@ -210,7 +235,9 @@ export const ProductFormScreen: React.FC = () => {
 
   const [name, setName] = useState(productToEdit?.name || '');
   const [description, setDescription] = useState(productToEdit?.description || '');
-  const [price, setPrice] = useState(productToEdit?.price?.toString() || '');
+  const [price, setPrice] = useState(
+    productToEdit?.price != null ? formatPriceForDisplay(productToEdit.price) : ''
+  );
   const [category, setCategory] = useState<string>(defaultCategory);
   const [prepTime, setPrepTime] = useState(productToEdit?.preparation_time?.toString() || '15');
   const [active, setActive] = useState(productToEdit ? productToEdit.active : true);
@@ -226,6 +253,8 @@ export const ProductFormScreen: React.FC = () => {
   );
 
   const [imageUri, setImageUri] = useState<string | null>(productToEdit?.image || null);
+  const [pickedMimeType, setPickedMimeType] = useState<string | null>(null);
+  const [pickedFileName, setPickedFileName] = useState<string | null>(null);
   const [imageChanged, setImageChanged] = useState(false);
 
   useEffect(() => {
@@ -247,24 +276,53 @@ export const ProductFormScreen: React.FC = () => {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
+      ...(Platform.OS === 'ios'
+        ? {
+            preferredAssetRepresentationMode:
+              ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
+          }
+        : {}),
     });
 
     if (!result.canceled && result.assets[0]) {
-      setImageUri(result.assets[0].uri);
+      const asset = result.assets[0];
+      setImageUri(asset.uri);
+      setPickedMimeType(asset.mimeType ?? null);
+      setPickedFileName(asset.fileName ?? null);
       setImageChanged(true);
     }
   };
 
   const handleSave = async () => {
-    if (!name || !price || !category) {
+    if (!name.trim() || !category) {
       Toast.show({
         type: 'error',
         text1: 'Campos incompletos',
-        text2: 'Preencha os campos obrigatórios (Nome, Preço e Categoria)',
+        text2: 'Preencha nome e categoria',
+      });
+      return;
+    }
+
+    const priceNum = parsePriceFromMasked(price);
+    if (priceNum == null) {
+      Toast.show({
+        type: 'error',
+        text1: 'Preço inválido',
+        text2: 'Informe um valor maior que zero (ex.: 29,90)',
+      });
+      return;
+    }
+
+    const prep = parseInt(prepTime.replace(/\D/g, ''), 10);
+    if (!Number.isFinite(prep) || prep < 1) {
+      Toast.show({
+        type: 'error',
+        text1: 'Tempo de preparo inválido',
+        text2: 'Use um número inteiro de minutos (mín. 1)',
       });
       return;
     }
@@ -276,11 +334,11 @@ export const ProductFormScreen: React.FC = () => {
     ];
 
     const productData = {
-      name,
-      description,
-      price: parseFloat(price.replace(',', '.')),
+      name: name.trim(),
+      description: description.trim(),
+      price: priceNum,
       category,
-      preparation_time: parseInt(prepTime, 10),
+      preparation_time: prep,
       active,
       customizations,
     };
@@ -299,6 +357,8 @@ export const ProductFormScreen: React.FC = () => {
         await uploadImageMutation.mutateAsync({
           productId,
           imageUri,
+          mimeType: pickedMimeType,
+          fileName: pickedFileName,
         });
       }
 
@@ -378,9 +438,9 @@ export const ProductFormScreen: React.FC = () => {
           <TextInput
             style={styles.input}
             value={price}
-            onChangeText={setPrice}
+            onChangeText={(t) => setPrice(maskPriceInput(t))}
             keyboardType="decimal-pad"
-            placeholder="0.00"
+            placeholder="0,00"
             editable={!isSaving}
           />
         </View>

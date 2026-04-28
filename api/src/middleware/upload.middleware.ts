@@ -14,9 +14,12 @@ const fileFilter = (
 ) => {
   const allowedMimeTypes = [
     'image/jpeg',
+    'image/jpg',
     'image/png',
     'image/webp',
     'image/gif',
+    'image/heic',
+    'image/heif',
   ];
 
   if (allowedMimeTypes.includes(file.mimetype)) {

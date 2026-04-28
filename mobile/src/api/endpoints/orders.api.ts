@@ -13,6 +13,7 @@ export interface CreateOrderDto {
     quantity: number;
     customizations: {
       customization_id: string;
+      name?: string;
       price_modifier: number;
     }[];
     obs?: string;

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { menuApi } from '../api/endpoints/menu.api';
+import type { IProduct } from '../types/menu';
 
 export function useMenu() {
   return useQuery({
@@ -35,8 +36,9 @@ export function useSearchMenu(query: string) {
   return useQuery({
     queryKey: ['menu', 'search', query],
     queryFn: () => menuApi.searchProducts(query),
-    staleTime: 1 * 60 * 1000,
+    enabled: query.trim().length > 2,
+    staleTime: 1000 * 30,
     gcTime: 5 * 60 * 1000,
-    enabled: query.length > 2,
+    placeholderData: [] as IProduct[],
   });
 }

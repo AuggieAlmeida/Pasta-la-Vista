@@ -1,0 +1,106 @@
+# Infra local: PostgreSQL + MongoDB + Redis com volumes nomeados.
+#
+# Só bancos (desenvolvimento no host):
+#   docker compose up -d
+#
+# Bancos + API no Docker:
+#   cp api/env.docker.example api/.env.docker
+#   docker compose --profile api up -d --build
+#
+# URLs a partir do host (Expo / Node na máquina):
+#   DATABASE_URL=postgresql://pastalavista:pastalavista@localhost:5432/pastalavista?schema=public
+#   DIRECT_URL=postgresql://pastalavista:pastalavista@localhost:5432/pastalavista?schema=public
+#   MONGODB_URI=mongodb://pastalavista:pastalavista@localhost:27017/pastalavista_dev?authSource=admin
+#   REDIS_URL=redis://localhost:6379
+#
+# Dentro da rede Docker (serviço api): troque localhost por postgres | mongodb | redis.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pastalavista-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: pastalavista
+      POSTGRES_PASSWORD: pastalavista
+      POSTGRES_DB: pastalavista
+    ports:
+      - '5432:5432'
+    volumes:
+      - pastalavista_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U pastalavista -d pastalavista']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  mongodb:
+    image: mongo:7
+    container_name: pastalavista-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: pastalavista
+      MONGO_INITDB_ROOT_PASSWORD: pastalavista
+      MONGO_INITDB_DATABASE: pastalavista_dev
+    ports:
+      - '27017:27017'
+    volumes:
+      - pastalavista_mongo_data:/data/db
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'mongosh',
+          '-u',
+          'pastalavista',
+          '-p',
+          'pastalavista',
+          '--authenticationDatabase',
+          'admin',
+          '--eval',
+          "db.adminCommand('ping')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    container_name: pastalavista-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - '6379:6379'
+    volumes:
+      - pastalavista_redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    profiles: ['api']
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: pastalavista-api
+    restart: unless-stopped
+    ports:
+      - '3333:3333'
+    env_file:
+      - ./api/.env.docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  pastalavista_pg_data:
+  pastalavista_mongo_data:
+  pastalavista_redis_data:

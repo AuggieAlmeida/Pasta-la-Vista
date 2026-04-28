@@ -2,11 +2,7 @@ import { Router, Request, Response } from 'express';
 import swaggerUi from 'swagger-ui-express';
 import path from 'path';
 import fs from 'fs';
-import { fileURLToPath } from 'url';
 import { openApiSpec } from './openapi';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const docsRouter = Router();
 

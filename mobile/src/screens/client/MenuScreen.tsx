@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -32,7 +32,7 @@ export const MenuScreen: React.FC = () => {
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<IProduct | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const [debounceTimer, setDebounceTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const menuQuery = useMenu();
   const categoryQuery = useMenuByCategory(
@@ -40,22 +40,13 @@ export const MenuScreen: React.FC = () => {
   );
   const searchResults = useSearchMenu(debouncedQuery);
 
-  const handleSearch = useCallback(
-    (text: string) => {
-      setSearchQuery(text);
-
-      if (debounceTimer) {
-        clearTimeout(debounceTimer);
-      }
-
-      const timer = setTimeout(() => {
-        setDebouncedQuery(text.trim());
-      }, 300);
-
-      setDebounceTimer(timer);
-    },
-    [debounceTimer]
-  );
+  const handleSearch = useCallback((text: string) => {
+    setSearchQuery(text);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setDebouncedQuery(text.trim());
+    }, 300);
+  }, []);
 
   const handleCategoryPress = useCallback((category: string) => {
     setSelectedCategory(category);

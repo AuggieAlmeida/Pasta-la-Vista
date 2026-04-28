@@ -10,6 +10,7 @@ import { StockKanbanScreen } from '../screens/admin/StockKanbanScreen';
 import { ProductListScreen } from '../screens/admin/ProductListScreen';
 import { ProductFormScreen } from '../screens/admin/ProductFormScreen';
 import { FeedbacksScreen } from '../screens/admin/FeedbacksScreen';
+import { CouponsScreen } from '../screens/admin/CouponsScreen';
 
 const Drawer = createDrawerNavigator();
 const ProductStack = createNativeStackNavigator();
@@ -122,6 +123,15 @@ export const AdminNavigator: React.FC = () => {
           title: 'Avaliações',
           drawerLabel: 'Feedbacks',
           drawerIcon: ({ color, size }) => <Feather name="star" size={size} color={color} />,
+        }}
+      />
+      <Drawer.Screen
+        name="CouponsRoot"
+        component={CouponsScreen}
+        options={{
+          title: 'Cupons',
+          drawerLabel: 'Cupons',
+          drawerIcon: ({ color, size }) => <Feather name="percent" size={size} color={color} />,
         }}
       />
       <Drawer.Screen

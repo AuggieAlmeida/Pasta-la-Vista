@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   Modal,
-  TextInput,
   TouchableOpacity,
   ScrollView,
   KeyboardAvoidingView,
@@ -12,7 +11,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { profileApi, UserCard } from '../api/endpoints/profile.api';
@@ -99,7 +98,7 @@ export const CardModal: React.FC<CardModalProps> = ({ visible, onClose, onSaved 
               <Text style={styles.label}>Dados do Cartão</Text>
               <CardField
                 postalCodeEnabled={false}
-                placeholder={{
+                placeholders={{
                   number: '0000 0000 0000 0000',
                 }}
                 cardStyle={{

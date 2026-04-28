@@ -73,6 +73,13 @@ export const CartScreen: React.FC = () => {
     }
   }, [addresses]);
 
+  useEffect(() => {
+    if (items.length === 0) {
+      setActiveCoupon(null);
+      setCouponCode('');
+    }
+  }, [items.length]);
+
   const subtotal = useMemo(() => getTotal(), [items, getTotal]);
   const currentDeliveryFee = deliveryMode === 'DELIVERY' ? DELIVERY_FEE : 0;
   
@@ -133,6 +140,7 @@ export const CartScreen: React.FC = () => {
             quantity: item.quantity,
             customizations: item.customizations.map((c) => ({
               customization_id: c.id,
+              name: c.name,
               price_modifier: c.price_modifier,
             })),
           })),
@@ -326,9 +334,14 @@ export const CartScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
       {activeCoupon && (
-        <Text style={styles.couponSuccessText}>
-          Desconto de {activeCoupon.discountType === 'PERCENTAGE' ? `${activeCoupon.discountValue}%` : formatPrice(activeCoupon.discountValue)} aplicado!
-        </Text>
+        <View style={styles.couponAppliedRow}>
+          <Text style={styles.couponSuccessText}>
+            Desconto de {activeCoupon.discountType === 'PERCENTAGE' ? `${activeCoupon.discountValue}%` : formatPrice(activeCoupon.discountValue)} aplicado!
+          </Text>
+          <TouchableOpacity onPress={() => { setActiveCoupon(null); setCouponCode(''); }}>
+            <Text style={styles.couponRemoveText}>Remover</Text>
+          </TouchableOpacity>
+        </View>
       )}
 
       <Text style={styles.sectionTitle}>Método de Pagamento</Text>
@@ -441,7 +454,15 @@ const styles = StyleSheet.create({
   couponRow: { flexDirection: 'row', alignItems: 'center' },
   couponBtn: { backgroundColor: '#333', paddingHorizontal: 20, paddingVertical: 14, borderRadius: 8, justifyContent: 'center' },
   couponBtnText: { color: '#FFF', fontWeight: '700' },
-  couponSuccessText: { color: '#4CAF50', fontSize: 13, fontWeight: '600', marginTop: 8 },
+  couponAppliedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 8,
+    gap: 12,
+  },
+  couponSuccessText: { color: '#4CAF50', fontSize: 13, fontWeight: '600', flex: 1 },
+  couponRemoveText: { fontSize: 13, fontWeight: '700', color: '#EF4444' },
   paymentSection: { backgroundColor: '#FFFFFF', borderRadius: 12, padding: 12 },
   paymentOption: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 12, borderRadius: 8, borderWidth: 1, borderColor: '#EEE', marginBottom: 8 },
   paymentOptionActive: { borderColor: '#FF6B35', backgroundColor: '#FFF8F5' },

@@ -28,12 +28,9 @@ export interface CartState {
   getItemCount: () => number;
 }
 
+/** `unit_price` já inclui base + tamanhos/variações/ingredientes (definido no modal de customização). */
 const calculateSubtotal = (item: CartItem): number => {
-  const customizationTotal = item.customizations.reduce(
-    (sum, c) => sum + c.price_modifier,
-    0
-  );
-  return (item.unit_price + customizationTotal) * item.quantity;
+  return item.unit_price * item.quantity;
 };
 
 export const useCartStore = create<CartState>()(

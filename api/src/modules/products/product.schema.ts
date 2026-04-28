@@ -11,7 +11,16 @@ export const CreateProductSchema = z.object({
   price: z.number()
     .positive('Preco deve ser maior que zero')
     .max(99999, 'Preco maximo excedido'),
-  image: z.string().url('URL da imagem invalida').optional().default(''),
+  /** Vazio até upload posterior; URL quando já publicada no R2 */
+  image: z.preprocess(
+    (val) => (val == null || val === '' ? '' : String(val).trim()),
+    z
+      .string()
+      .max(2048)
+      .refine((s) => s === '' || /^https?:\/\/.+/i.test(s), {
+        message: 'URL da imagem invalida',
+      })
+  ),
   category: z.enum(['pizzas', 'bebidas', 'sobremesas', 'massas', 'entradas', 'saladas'], {
     errorMap: () => ({ message: 'Categoria invalida' }),
   }),

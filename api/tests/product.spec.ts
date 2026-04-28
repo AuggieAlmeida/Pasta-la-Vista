@@ -155,10 +155,15 @@ describe('ProductService', () => {
 
       const result = await productService.searchByName('Margherita');
 
-      expect(Product.find).toHaveBeenCalledWith({
-        active: true,
-        name: { $regex: 'Margherita', $options: 'i' },
-      });
+      expect(Product.find).toHaveBeenCalledWith(
+        {
+          $text: { $search: 'Margherita' },
+          active: true,
+        },
+        {
+          score: { $meta: 'textScore' },
+        }
+      );
       expect(result).toEqual([mockProduct]);
     });
   });

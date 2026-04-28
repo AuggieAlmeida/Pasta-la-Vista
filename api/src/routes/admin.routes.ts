@@ -1,7 +1,10 @@
 import { Router } from 'express';
 import { orderController } from '../modules/orders/order.controller';
+import { couponController } from '../modules/coupons/coupon.controller';
+import { CreateCouponSchema, UpdateCouponActiveSchema } from '../modules/coupons/coupon.schema';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { roleMiddleware } from '../middleware/role.middleware';
+import { validateMiddleware } from '../middleware/validate.middleware';
 import { upload, handleUploadError } from '../middleware/upload.middleware';
 import { uploadProductImage } from '../utils/r2';
 import { Product } from '../modules/products/product.model';
@@ -37,6 +40,20 @@ adminRouter.get(
   (req, res, next) => orderController.getFeedbacks(req, res, next)
 );
 
+// ──── Cupons ───────────────────────────────────────────
+adminRouter.get('/cupons', (req, res, next) => couponController.listCoupons(req, res, next));
+
+adminRouter.post(
+  '/cupons',
+  validateMiddleware(CreateCouponSchema),
+  (req, res, next) => couponController.createCoupon(req, res, next)
+);
+
+adminRouter.patch(
+  '/cupons/:id',
+  validateMiddleware(UpdateCouponActiveSchema),
+  (req, res, next) => couponController.setCouponActive(req, res, next)
+);
 
 // ──── Upload de Imagem de Produto ──────────────────────
 adminRouter.post(

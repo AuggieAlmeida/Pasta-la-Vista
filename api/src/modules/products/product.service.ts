@@ -86,15 +86,21 @@ export const productService = {
 
   async searchByName(query: string): Promise<IProduct[]> {
     try {
-      const products = await Product.find({
-        active: true,
-        name: { $regex: query, $options: 'i' },
-      })
-        .sort({ name: 1 })
+      const q = query.trim();
+      const raw = await Product.find(
+        {
+          $text: { $search: q },
+          active: true,
+        },
+        {
+          score: { $meta: 'textScore' },
+        }
+      )
+        .sort({ score: { $meta: 'textScore' } })
         .limit(20)
-        .lean<IProduct[]>();
+        .lean<Array<IProduct & { score?: number }>>();
 
-      return products;
+      return raw.map(({ score: _score, ...doc }) => doc);
     } catch (error) {
       throw error;
     }

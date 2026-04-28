@@ -7,6 +7,25 @@ import { Decimal } from '@prisma/client/runtime/library';
 
 const DELIVERY_FEE = 5.0;
 
+function findProductCustomization(
+  product: { customizations?: Array<{ _id?: unknown; name?: string; price_modifier?: number }> },
+  cust: { customization_id: string; price_modifier: number; name?: string }
+) {
+  const cid = String(cust.customization_id).trim();
+  const list = product.customizations || [];
+  const byId = list.find((c) => c._id != null && String(c._id) === cid);
+  if (byId) return byId;
+
+  const nameTrim = cust.name?.trim();
+  if (!nameTrim) return undefined;
+  const mod = Number(cust.price_modifier);
+  return list.find(
+    (c) =>
+      String(c.name || '').trim() === nameTrim &&
+      Number(c.price_modifier) === mod
+  );
+}
+
 interface OrderResult {
   id: string;
   userId: string;
@@ -93,15 +112,13 @@ export const orderService = {
 
         if (item.customizations && item.customizations.length > 0) {
           for (const cust of item.customizations) {
-            const productCustomization = product.customizations?.find(
-              (c) => c._id?.toString() === cust.customization_id
-            );
+            const productCustomization = findProductCustomization(product, cust);
             if (productCustomization) {
-              itemUnitPrice += productCustomization.price_modifier;
+              itemUnitPrice += Number(productCustomization.price_modifier) || 0;
               customizationDetails.push({
                 customization_id: cust.customization_id,
                 name: productCustomization.name,
-                price_modifier: productCustomization.price_modifier,
+                price_modifier: Number(productCustomization.price_modifier) || 0,
               });
             }
           }

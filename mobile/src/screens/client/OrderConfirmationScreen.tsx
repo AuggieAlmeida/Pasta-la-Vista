@@ -237,7 +237,9 @@ export const OrderConfirmationScreen: React.FC = () => {
         </View>
         {order.discount > 0 && (
           <View style={styles.breakdownRow}>
-            <Text style={styles.breakdownLabel}>Desconto</Text>
+            <Text style={styles.breakdownLabel}>
+              {order.coupon_code ? `Cupom (${order.coupon_code})` : 'Desconto'}
+            </Text>
             <Text style={[styles.breakdownValue, { color: '#10B981' }]}>
               -{formatPrice(order.discount)}
             </Text>

@@ -46,17 +46,17 @@ export const productController = {
 
   async searchProducts(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const query = req.query.q as string;
+      const q = req.query.q;
 
-      if (!query || query.trim().length === 0) {
+      if (!q || typeof q !== 'string' || q.trim().length < 2) {
         res.status(400).json({
           status: 'error',
-          message: 'Termo de busca e obrigatorio',
+          message: 'Query muito curta',
         });
         return;
       }
 
-      const products = await productService.searchByName(query.trim());
+      const products = await productService.searchByName(q.trim());
 
       res.status(200).json({
         status: 'success',

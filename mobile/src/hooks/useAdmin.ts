@@ -118,8 +118,17 @@ export function useUploadProductImage() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ productId, imageUri }: { productId: string; imageUri: string }) =>
-      adminApi.uploadProductImage(productId, imageUri),
+    mutationFn: ({
+      productId,
+      imageUri,
+      mimeType,
+      fileName,
+    }: {
+      productId: string;
+      imageUri: string;
+      mimeType?: string | null;
+      fileName?: string | null;
+    }) => adminApi.uploadProductImage(productId, imageUri, { mimeType, fileName }),
     onSuccess: (_, { productId }) => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['product', productId] });

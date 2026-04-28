@@ -20,6 +20,25 @@ interface ApiResponse<T> {
   count?: number;
 }
 
+/** MIME válido para o Multer (evita image/jpg, que é rejeitado). */
+function resolveUploadMimeType(fileName: string, fromPicker?: string | null): string {
+  const m = fromPicker?.trim().toLowerCase();
+  if (m && /^image\/(jpeg|jpg|png|webp|gif|heic|heif)$/i.test(m)) {
+    return m === 'image/jpg' ? 'image/jpeg' : m;
+  }
+  const ext = (fileName.split('.').pop() || 'jpg').toLowerCase();
+  const map: Record<string, string> = {
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    png: 'image/png',
+    webp: 'image/webp',
+    gif: 'image/gif',
+    heic: 'image/heic',
+    heif: 'image/heif',
+  };
+  return map[ext] || 'image/jpeg';
+}
+
 // ─── Types ──────────────────────────────────────────────
 
 export interface StockItem {
@@ -53,6 +72,17 @@ export interface DashboardMetrics {
 export interface AdminOrder extends IOrder {
   userName: string;
   userEmail: string;
+}
+
+export interface AdminCoupon {
+  id: string;
+  code: string;
+  discountType: 'PERCENTAGE' | 'FIXED';
+  discountValue: number;
+  usageLimit: number | null;
+  usedCount: number;
+  active: boolean;
+  createdAt: string;
 }
 
 // ─── API Calls ──────────────────────────────────────────
@@ -137,14 +167,42 @@ export const adminApi = {
     await api.delete(`/api/v1/menu/${id}`);
   },
 
+  async listCoupons(): Promise<AdminCoupon[]> {
+    const response = await api.get<ApiResponse<AdminCoupon[]>>('/api/v1/admin/cupons');
+    return response.data.data;
+  },
+
+  async createCoupon(payload: {
+    code: string;
+    discountType: 'PERCENTAGE' | 'FIXED';
+    discountValue: number;
+    usageLimit?: number | null;
+  }): Promise<AdminCoupon> {
+    const response = await api.post<ApiResponse<AdminCoupon>>('/api/v1/admin/cupons', payload);
+    return response.data.data;
+  },
+
+  async setCouponActive(id: string, active: boolean): Promise<AdminCoupon> {
+    const response = await api.patch<ApiResponse<AdminCoupon>>(`/api/v1/admin/cupons/${id}`, {
+      active,
+    });
+    return response.data.data;
+  },
+
   // ──── Product Image Upload ──────────────────
-  async uploadProductImage(productId: string, imageUri: string): Promise<{ imageUrl: string }> {
+  async uploadProductImage(
+    productId: string,
+    imageUri: string,
+    meta?: { mimeType?: string | null; fileName?: string | null }
+  ): Promise<{ imageUrl: string }> {
     const formData = new FormData();
 
-    // Para React Native, construir o objeto de arquivo corretamente
-    const fileName = imageUri.split('/').pop() || 'image.jpg';
-    const match = /\.(\w+)$/.exec(fileName);
-    const type = match ? `image/${match[1]}` : 'image/jpeg';
+    const rawName =
+      meta?.fileName?.trim() ||
+      imageUri.split('/').pop()?.split('?')[0] ||
+      'upload.jpg';
+    const fileName = rawName.includes('.') ? rawName : `${rawName}.jpg`;
+    const type = resolveUploadMimeType(fileName, meta?.mimeType);
 
     formData.append('image', {
       uri: imageUri,
@@ -156,8 +214,17 @@ export const adminApi = {
       `/api/v1/admin/produtos/${productId}/imagem`,
       formData,
       {
-        headers: {
-          'Content-Type': 'multipart/form-data',
+        timeout: 120_000,
+        transformRequest: (data, headers) => {
+          const h = headers as Record<string, string | undefined>;
+          const isForm =
+            typeof FormData !== 'undefined' &&
+            (data instanceof FormData ||
+              (data != null && typeof (data as FormData).append === 'function'));
+          if (isForm) {
+            delete h['Content-Type'];
+          }
+          return data;
         },
       }
     );
