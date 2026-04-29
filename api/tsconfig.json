@@ -6,7 +6,7 @@
       "ES2020"
     ],
     "outDir": "./dist",
-    "rootDir": ".",
+    "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -35,13 +35,11 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": [
-    "src",
-    "tests",
-    "prisma/seed-products.ts",
-    "prisma/create-admin.ts"
+    "src"
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "tests"
   ]
 }
