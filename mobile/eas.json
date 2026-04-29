@@ -4,16 +4,12 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
-      },
-      "ios": {
-        "simulator": false
       }
     },
     "production": {
       "android": {
         "buildType": "app-bundle"
-      },
-      "ios": {}
+      }
     }
   },
   "submit": {
@@ -21,11 +17,6 @@
       "android": {
         "serviceAccountKeyPath": "fastlane/service-account.json",
         "track": "production"
-      },
-      "ios": {
-        "appleId": "",
-        "ascAppId": "",
-        "appleTeamId": ""
       }
     }
   }
