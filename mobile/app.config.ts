@@ -20,7 +20,7 @@ const expoConfig: ExpoConfig = {
     apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:3333',
     stripePk: process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || '',
     eas: {
-      projectId: process.env.EXPO_PROJECT_ID || 'f22152ee-f1d4-4251-863f-e26545ad65fb',
+      projectId: process.env.EXPO_PROJECT_ID || '',
     },
   },
   ios: {
@@ -32,6 +32,7 @@ const expoConfig: ExpoConfig = {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#ffffff',
     },
+    package: 'com.pastalavista.mobile',
   },
   web: {
     bundler: 'metro',
