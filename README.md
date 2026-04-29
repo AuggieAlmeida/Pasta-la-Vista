@@ -68,7 +68,3 @@ npm start
 - **Sprint 1:** Autenticação e Fundações — ⬜ não iniciado
 - **Sprint 2:** Cardápio, Carrinho e Pedidos — ⬜ não iniciado
 - **Sprint 3:** Pagamento, Admin e Estoque — ⬜ não iniciado
-
-## Autor
-
-- Augusto Almeida @AuggieAlmeida
