@@ -4,10 +4,18 @@ const expoConfig: ExpoConfig = {
   name: 'Pasta la Vista',
   slug: 'pasta-la-vista-mobile',
   version: '0.1.0',
+  scheme: 'pastalavista',
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'light',
+  splash: {
+    image: './assets/splash.png',
+    resizeMode: 'contain',
+    backgroundColor: '#ffffff',
+  },
+  assetBundlePatterns: ['**/*'],
   plugins: [
+    'expo-secure-store',
     [
       '@stripe/stripe-react-native',
       {
@@ -22,6 +30,9 @@ const expoConfig: ExpoConfig = {
     eas: {
       projectId: process.env.EXPO_PROJECT_ID || 'f22152ee-f1d4-4251-863f-e26545ad65fb',
     },
+  },
+  experiments: {
+    tsconfigPaths: true,
   },
   ios: {
     supportsTablet: true,

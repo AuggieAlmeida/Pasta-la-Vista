@@ -92,6 +92,7 @@ jobs:
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
+          expo-project-id: ${{ secrets.EXPO_PROJECT_ID }}
           packager: npm
 
       - name: Build Android preview

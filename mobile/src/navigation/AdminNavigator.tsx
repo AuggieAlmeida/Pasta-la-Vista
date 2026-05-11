@@ -95,7 +95,7 @@ export const AdminNavigator: React.FC = () => {
         options={{
           title: 'Dashboard',
           drawerLabel: 'Dashboard',
-          drawerIcon: ({ color, size }) => <Feather name="bar-chart-2" size={size} color={color} />,
+          drawerIcon: ({ color, size }) => <Feather name="bar-chart-2" size={size || 20} color={color} />,
         }}
       />
       <Drawer.Screen
@@ -104,7 +104,7 @@ export const AdminNavigator: React.FC = () => {
         options={{
           title: 'Gestão de Pedidos',
           drawerLabel: 'Pedidos',
-          drawerIcon: ({ color, size }) => <Feather name="clipboard" size={size} color={color} />,
+          drawerIcon: ({ color, size }) => <Feather name="clipboard" size={size || 20} color={color} />,
         }}
       />
       <Drawer.Screen
@@ -113,7 +113,7 @@ export const AdminNavigator: React.FC = () => {
         options={{
           title: 'Estoque Kanban',
           drawerLabel: 'Estoque',
-          drawerIcon: ({ color, size }) => <Feather name="package" size={size} color={color} />,
+          drawerIcon: ({ color, size }) => <Feather name="package" size={size || 20} color={color} />,
         }}
       />
       <Drawer.Screen
@@ -122,7 +122,7 @@ export const AdminNavigator: React.FC = () => {
         options={{
           title: 'Avaliações',
           drawerLabel: 'Feedbacks',
-          drawerIcon: ({ color, size }) => <Feather name="star" size={size} color={color} />,
+          drawerIcon: ({ color, size }) => <Feather name="star" size={size || 20} color={color} />,
         }}
       />
       <Drawer.Screen
@@ -131,7 +131,7 @@ export const AdminNavigator: React.FC = () => {
         options={{
           title: 'Cupons',
           drawerLabel: 'Cupons',
-          drawerIcon: ({ color, size }) => <Feather name="percent" size={size} color={color} />,
+          drawerIcon: ({ color, size }) => <Feather name="percent" size={size || 20} color={color} />,
         }}
       />
       <Drawer.Screen
@@ -141,7 +141,7 @@ export const AdminNavigator: React.FC = () => {
           headerShown: true,
           title: 'Produtos',
           drawerLabel: 'Produtos',
-          drawerIcon: ({ color, size }) => <Feather name="grid" size={size} color={color} />,
+          drawerIcon: ({ color, size }) => <Feather name="grid" size={size || 20} color={color} />,
         }}
       />
       <Drawer.Screen
@@ -150,7 +150,7 @@ export const AdminNavigator: React.FC = () => {
         options={{
           title: 'Perfil',
           drawerLabel: 'Perfil',
-          drawerIcon: ({ color, size }) => <Feather name="user" size={size} color={color} />,
+          drawerIcon: ({ color, size }) => <Feather name="user" size={size || 20} color={color} />,
         }}
       />
     </Drawer.Navigator>
