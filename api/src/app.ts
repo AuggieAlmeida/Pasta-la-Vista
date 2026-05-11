@@ -17,11 +17,16 @@ import { AppError } from './utils/errors';
 const app: Express = express();
 
 // Middleware de CORS
+const corsOrigin = (() => {
+  if (process.env.NODE_ENV !== 'production') return true;
+  const raw = process.env.CORS_ORIGIN?.trim();
+  if (!raw || raw === '*') return '*';            // wildcard must be a string, not ["*"]
+  return raw.split(',').map((o) => o.trim());     // lista de origens permitidas
+})();
+
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production'
-    ? (process.env.CORS_ORIGIN?.split(',') || [])
-    : true, // Permitir qualquer origem em desenvolvimento (mobile, simulador, etc.)
-  credentials: true,
+  origin: corsOrigin,
+  credentials: corsOrigin !== '*',                // credentials não funciona com origin "*"
 }));
 
 // ──── Stripe Webhook (ANTES do express.json()) ─────────

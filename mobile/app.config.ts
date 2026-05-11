@@ -1,6 +1,7 @@
 import { ExpoConfig } from 'expo/config';
 
 const expoConfig: ExpoConfig = {
+  owner: 'auggiealmeida',
   name: 'Pasta la Vista',
   slug: 'pasta-la-vista-mobile',
   version: '0.1.0',
