@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '../stores/auth.store';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:3333';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? '';
 
 let isRefreshing = false;
 let failedQueue: Array<{
